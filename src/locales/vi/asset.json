@@ -1,0 +1,70 @@
+{
+    "assetCode": "Mã tài sản",
+    "assetName": "Tên tài sản",
+    "departmentCode": "Mã bộ phận sử dụng",
+    "departmentName": "Tên bộ phận sử dụng",
+    "assetTypeCode": "Mã loại tài sản",
+    "assetTypeName": "Tên loại tài sản",
+    "quantity": "Số lượng",
+    "price": "Nguyên giá",
+    "useYears": "Số năm sử dụng",
+    "trackingYear": "Năm theo dõi",
+    "purchaseDate": "Ngày mua",
+    "depreciationRate": "Tỷ lệ hao mòn",
+    "annualDepreciation": "Giá trị hao mòn năm",
+    "startDate": "Ngày bắt đầu sử dụng",
+
+    "assetCodePlaceholder": "Nhập mã tài sản",
+    "assetNamePlaceholder": "Nhập tên tài sản",
+    
+
+    "confirmContent": "Bạn có muốn hủy bỏ khai báo tài sản này?",
+    "updateConfirmContent": "Thông tin thay đổi sẽ không được cập nhật nếu bạn không lưu. Bạn có muốn lưu các thay đổi này?",
+    "deleteConfirmContent": "Bạn có muốn xóa tài sản này?",
+    "deleteConfirmContentMultiple": "Tài sản đã được chọn. Bạn có muốn xóa các tài sản này khỏi danh sách?",
+    "deleteSuccess": "Tài sản đã được xóa thành công",
+        
+    "updateSuccess": "Cập nhật tài sản thành công",
+    "duplicateSuccess": "Nhân bản tài sản thành công",
+    "addSuccess": "Thêm tài sản thành công",
+    "depreciationExceedsPriceError": "Hao mòn năm phải nhỏ hơn hoặc bằng nguyên giá",
+
+    "filterSearchPlaceholder": "Tìm kiếm tài sản",
+    "filterAssetTypePlaceholder": "Loại tài sản",
+    "filterDepartmentPlaceholder": "Bộ phận sử dụng",
+
+
+    "addAsset": "Thêm tài sản",
+    "editAsset": "Sửa tài sản",
+    "duplicateAsset": "Nhân bản tài sản",
+    "deleteError": "Xóa tài sản thất bại",
+    "notFound": "Không tìm thấy tài sản",
+    "submitError": "Lỗi khi gửi dữ liệu",
+    "fetchError": "Lỗi khi tải dữ liệu tài sản",
+    "fetchFiltersError": "Lỗi khi tải dữ liệu bộ lọc",
+    "initError": "Lỗi khi khởi tạo trang",
+    "generateCodeError": "Lỗi khi tạo mã tài sản",
+    "errors": {
+        "assetCode_required": "Cần phải nhập thông tin mã tài sản",
+        "assetCode_max": "Mã tài sản không được vượt quá 20 ký tự",
+        "assetName_required": "Cần phải nhập thông tin tên tài sản",
+        "assetName_max": "Tên tài sản không được vượt quá 255 ký tự",
+        "assetTypeName_required": "Cần phải chọn thông tin loại tài sản",
+        "departmentName_required": "Cần phải chọn thông tin bộ phận sử dụng",
+        "quantity_required": "Cần phải nhập thông tin số lượng",
+        "purchaseDate_required": "Cần phải nhập thông tin ngày mua",
+        "price_required": "Cần phải nhập thông tin nguyên giá",
+        "depreciationRate_required": "Cần phải nhập thông tin tỷ lệ hao mòn",
+        "annualDepreciation_required": "Cần phải nhập thông tin giá trị hao mòn năm",
+        "startDate_required": "Cần phải nhập thông tin ngày bắt đầu sử dụng",
+        "useYears_required": "Cần phải nhập thông tin số năm sử dụng",
+        "number_invalid": "Giá trị phải là số",
+        "date_invalid": "Giá trị phải là ngày tháng năm",
+        "quantity_positive": "Số lượng phải lớn hơn 0",
+        "price_positive": "Nguyên giá phải lớn hơn 0",
+        "annualDepreciation_positive": "Giá trị hao mòn năm phải lớn hơn 0",
+        "depreciationRate_positive": "Tỷ lệ hao mòn phải lớn hơn 0",
+        "useYears_positive": "Số năm sử dụng phải lớn hơn 0"
+
+    }
+}

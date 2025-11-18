@@ -1,0 +1,81 @@
+/* Dropdown panel */
+.p-select-overlay {
+  background: #ffffff !important;
+  border: 1px solid #afafaf !important;
+  border-radius: 2.5px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Filter container */
+.p-select-filter-container {
+  padding: 8px !important;
+  background: #ffffff !important;
+}
+
+/* Filter input */
+.p-select-filter {
+  width: 100% !important;
+  padding: 8px 12px !important;
+  border: 1px solid #afafaf !important;
+  border-radius: 2.5px !important;
+  font-size: 13px !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+.p-select-filter::placeholder {
+  color: #999 !important;
+  font-size: 13px !important;
+}
+
+.p-select-filter:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 0.2rem rgba(26, 164, 200, 0.2) !important;
+}
+
+/* Options list */
+.p-select-list {
+  padding: 4px 0 !important;
+  background: #ffffff !important;
+}
+
+/* Options */
+.p-select-option {
+  font-size: 13px !important;
+  padding: 8px 12px !important;
+  color: #000000 !important;
+  background: #ffffff !important;
+  cursor: pointer !important;
+}
+
+/* Hover */
+.p-select-option:not(.p-disabled):hover {
+  background: #f5f5f5 !important;
+  color: #000000 !important;
+}
+
+/* Focus */
+.p-select-option.p-focus {
+  background: #e3f2fd !important;
+}
+
+/* Selected */
+.p-select-option.p-selected {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+/* Empty message */
+.p-select-empty-message {
+  padding: 8px 12px !important;
+  font-size: 13px !important;
+  color: #999 !important;
+  background: #ffffff !important;
+}
+
+/* Icons */
+.p-select-overlay .p-icon {
+  color: #666 !important;
+  width: 14px !important;
+  height: 14px !important;
+}

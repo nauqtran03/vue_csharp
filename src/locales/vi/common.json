@@ -1,0 +1,14 @@
+{
+    "selectDate": "Chọn ngày",
+    "tableFooter": {
+        "total": "Tổng số",
+        "record": "bản ghi"
+    },
+    "notFound": {
+        "title": "Trang không tồn tại",
+        "description": "Xin lỗi, trang bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.",
+        "button": "Quay lại trang chủ"
+    },
+    "cancel": "Hủy",
+    "save": "Lưu"
+}
