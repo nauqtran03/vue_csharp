@@ -16,13 +16,24 @@
 
     "assetCodePlaceholder": "Nhập mã tài sản",
     "assetNamePlaceholder": "Nhập tên tài sản",
-    
+    "departmentNamePlaceholder": "Chọn mã bộ phận sử dụng",
+    "assetTypeNamePlaceholder": "Chọn mã loại tài sản",
+    "departmentCodePlaceholder": "Nhập mã bộ phận sử dụng",
+    "assetTypeCodePlaceholder": "Nhập mã loại tài sản",
+    "quantityPlaceholder": "Nhập số lượng",
+    "pricePlaceholder": "Nhập nguyên giá",
+    "useYearsPlaceholder": "Nhập số năm sử dụng",
+    "trackingYearPlaceholder": "Nhập năm theo dõi",
+    "purchaseDatePlaceholder": "Nhập ngày mua",
+    "depreciationRatePlaceholder": "Nhập tỷ lệ hao mòn",
+    "annualDepreciationPlaceholder": "Nhập giá trị hao mòn năm",
+    "startDatePlaceholder": "Nhập ngày bắt đầu sử dụng",
 
     "confirmContent": "Bạn có muốn hủy bỏ khai báo tài sản này?",
     "updateConfirmContent": "Thông tin thay đổi sẽ không được cập nhật nếu bạn không lưu. Bạn có muốn lưu các thay đổi này?",
     "deleteConfirmContent": "Bạn có muốn xóa tài sản này?",
-    "deleteConfirmContentMultiple": "Tài sản đã được chọn. Bạn có muốn xóa các tài sản này khỏi danh sách?",
-    "deleteSuccess": "Tài sản đã được xóa thành công",
+    "deleteConfirmContentMultiple": "tài sản đã được chọn. Bạn có muốn xóa các tài sản này khỏi danh sách?",
+    "deleteSuccess": "tài sản đã được xóa thành công",
         
     "updateSuccess": "Cập nhật tài sản thành công",
     "duplicateSuccess": "Nhân bản tài sản thành công",

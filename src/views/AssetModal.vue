@@ -35,6 +35,7 @@
               :error_message="errors.assetCode"
               :label="t('asset.assetCode')"
               :placeholder="t('asset.assetCodePlaceholder')"
+              :disabled="props.mode === 'edit'"
             />
           </div>
           <div class="col-span-2">
@@ -61,9 +62,11 @@
               v-bind="departmentNameAttrs"
               :error_message="errors.departmentName"
               :label="t('asset.departmentCode')"
-              :placeholder="t('asset.departmentNamePlaceholder')"
+              :placeholder="t('asset.departmentCodePlaceholder')"
               :options="departments"
               optionLabel="departmentAbbreviation"
+              @blur="resolveDepartment"
+              @change="resolveDepartment"
             />
           </div>
           <div class="col-span-2">
@@ -86,9 +89,11 @@
               v-bind="assetTypeNameAttrs"
               :error_message="errors.assetTypeName"
               :label="t('asset.assetTypeCode')"
-              :placeholder="t('asset.assetTypeNamePlaceholder')"
+              :placeholder="t('asset.assetTypeCodePlaceholder')"
               :options="assetTypes"
               optionLabel="assetTypeAbbreviation"
+              @blur="resolveAssetType"
+              @change="resolveAssetType"
             />
           </div>
           <div class="col-span-2">
@@ -179,19 +184,6 @@
         <div class="grid grid-cols-3 gap-16">
           <div class="col-span-1">
             <MsInputNumber
-              hasButton
-              size="large"
-              tabindex="10"
-              isRequired
-              v-model="useYears"
-              v-bind="useYearsAttrs"
-              :error_message="errors.useYears"
-              :label="t('asset.useYears')"
-              :placeholder="t('asset.useYearsPlaceholder')"
-            />
-          </div>
-          <div class="col-span-1">
-            <MsInputNumber
               size="large"
               tabindex="11"
               isRequired
@@ -272,6 +264,7 @@ import MsConfirmModal from '@/components/ms-modal/MsConfirmModal.vue'
 import { assetSchema } from '@/schemas/asset.schema'
 import { useForm } from 'vee-validate'
 import { ref, watch, nextTick } from 'vue'
+import APIAsset from '@/apis/components/APIAsset.js'
 import { useI18n } from 'vue-i18n'
 import { isEqual } from 'lodash'
 import MsButton from '@/components/ms-button/MsButton.vue'
@@ -279,21 +272,48 @@ import MsInputNumber from '@/components/ms-input/MsInputNumber.vue'
 import MsDatePicker from '@/components/ms-date/MsDatePicker.vue'
 import MsInput from '@/components/ms-input/MsInput.vue'
 import MsFilterSelect from '@/components/ms-filter/MsFilterSelect.vue'
+import APIDepartment from '@/apis/components/APIDepartment.js'
+import APIAssetType from '@/apis/components/APIAssetType.js'
 
 const { t } = useI18n()
 
-// Dữ liệu mẫu
-const departments = ref([
-  { departmentId: 1, departmentName: 'Phòng IT', departmentAbbreviation: 'IT' },
-  { departmentId: 2, departmentName: 'Phòng Kế toán', departmentAbbreviation: 'KT' },
-  { departmentId: 3, departmentName: 'Phòng Nhân sự', departmentAbbreviation: 'NS' }
-])
+// Danh sách lấy từ BE
+const departments = ref([])
+const assetTypes = ref([])
 
-const assetTypes = ref([
-  { assetTypeId: 1, assetTypeName: 'Máy vi tính', assetTypeAbbreviation: 'MVT', depreciationRate: 25, lifeTime: 4 },
-  { assetTypeId: 2, assetTypeName: 'Bàn ghế', assetTypeAbbreviation: 'BG', depreciationRate: 10, lifeTime: 10 },
-  { assetTypeId: 3, assetTypeName: 'Thiết bị văn phòng', assetTypeAbbreviation: 'TBVP', depreciationRate: 20, lifeTime: 5 }
-])
+// Đảm bảo danh mục được nạp trước khi fill form
+const ensureCatalogsLoaded = async () => {
+  if (Array.isArray(departments.value) && departments.value.length > 0 && Array.isArray(assetTypes.value) && assetTypes.value.length > 0) return
+  try {
+    const [deptRes, typeRes] = await Promise.all([
+      APIDepartment.getAll(),
+      APIAssetType.getAll(),
+    ])
+    departments.value = (deptRes.data?.data || deptRes.data || []).map((d) => ({
+      departmentId: d.departmentId ?? d.DepartmentId ?? d.deptId,
+      departmentName: d.departmentName ?? d.DepartmentName ?? d.deptName,
+      departmentAbbreviation: d.departmentAbbreviation ?? d.DepartmentAbbreviation ?? d.deptAbbr,
+      departmentCode: d.departmentCode ?? d.DepartmentCode ?? d.deptCode,
+    }))
+    assetTypes.value = (typeRes.data?.data || typeRes.data || []).map((t) => ({
+      assetTypeId: t.assetTypeId ?? t.AssetTypeId ?? t.typeId,
+      assetTypeName: t.assetTypeName ?? t.AssetTypeName ?? t.typeName,
+      assetTypeAbbreviation: t.assetTypeAbbreviation ?? t.AssetTypeAbbreviation ?? t.typeAbbr,
+      assetTypeDepreciationRate: t.assetTypeDepreciationRate ?? t.AssetTypeDepreciationRate ?? t.depreciationRate ?? t.rate,
+      assetLifeTime: t.assetLifeTime ?? t.AssetLifeTime ?? t.lifeTime ?? t.lifetime ?? t.LifeTime,
+      assetTypeCode: t.assetTypeCode ?? t.AssetTypeCode ?? t.typeCode,
+    }))
+  } catch {}
+}
+
+// Helpers: lấy số an toàn theo nhiều key khác nhau
+const pickNumber = (obj, keys, def = 0) => {
+  for (const k of keys) {
+    const v = obj?.[k]
+    if (v !== undefined && v !== null && !Number.isNaN(Number(v))) return Number(v)
+  }
+  return Number(def)
+}
 
 const props = defineProps({
   isOpen: Boolean,
@@ -321,7 +341,7 @@ const { errors, handleSubmit, defineField, resetForm, setErrors } = useForm({
     price: 0,
     annualDepreciation: 0,
     depreciationRate: 0,
-    useYears: 0,
+    assetTypeLifeTime: 0,
     purchaseDate: undefined,
     startDate: undefined,
   },
@@ -338,112 +358,7 @@ const [departmentName, departmentNameAttrs] = defineField('departmentName')
 const [assetTypeName, assetTypeNameAttrs] = defineField('assetTypeName')
 const [quantity, quantityAttrs] = defineField('quantity')
 const [purchaseDate, purchaseDateAttrs] = defineField('purchaseDate')
-const [price, priceAttrs] = defineField('price')
-const [annualDepreciation, annualDepreciationAttrs] = defineField('annualDepreciation')
-const [depreciationRate, depreciationRateAttrs] = defineField('depreciationRate')
-const [startDate, startDateAttrs] = defineField('startDate')
-const [useYears, useYearsAttrs] = defineField('useYears')
-
-// State
-const isOpenConfirmModal = ref(false)
-const isOpenErrorModal = ref(false)
-const errorMessage = ref('')
-const trackingYear = ref(new Date().getFullYear())
-const clonedAssetData = ref(null)
-const firstInputRef = ref(null)
-const isLoadingData = ref(false)
-
-/**
- * Kiểm tra xem form có dữ liệu thực sự chưa
- */
-const hasFormData = () => {
-  const hasData = !!(
-    assetCode.value ||
-    assetName.value ||
-    departmentName.value ||
-    assetTypeName.value ||
-    purchaseDate.value ||
-    startDate.value ||
-    (quantity.value && quantity.value !== 0) ||
-    (price.value && price.value !== 0) ||
-    (depreciationRate.value && depreciationRate.value !== 0) ||
-    (useYears.value && useYears.value !== 0) ||
-    (annualDepreciation.value && annualDepreciation.value !== 0)
-  )
-
-  console.log('hasFormData:', hasData)
-  return hasData
-}
-
-/**
- * Xử lý nút hủy/đóng modal
- */
-const showCancelConfirm = (event) => {
-  // QUAN TRỌNG: Ngăn form submit
-  if (event) {
-    event.preventDefault()
-    event.stopPropagation()
-  }
-
-  console.log('showCancelConfirm called, mode:', props.mode)
-
-  if (props.mode === 'edit') {
-    const currentData = getCurrentFormData()
-
-    if (!isEqual(clonedAssetData.value, currentData)) {
-      console.log('Edit mode - has changes, show confirm')
-      isOpenConfirmModal.value = true
-    } else {
-      console.log('Edit mode - no changes, close directly')
-      handleConfirmCancel()
-    }
-  } else {
-    const hasData = hasFormData()
-    console.log('Add/Duplicate mode - hasData:', hasData)
-
-    if (hasData) {
-      console.log('Has data, show confirm')
-      isOpenConfirmModal.value = true
-    } else {
-      console.log('No data, close directly')
-      handleConfirmCancel()
-    }
-  }
-}
-
-/**
- * Xác nhận hủy bỏ - đóng modal ngay
- */
-const handleConfirmCancel = () => {
-  console.log('handleConfirmCancel - closing modal immediately')
-  isOpenConfirmModal.value = false
-  handleCloseModal()
-}
-
-/**
- * Xác nhận submit từ edit confirm modal
- */
-const handleConfirmSubmit = () => {
-  console.log('handleConfirmSubmit - submit form')
-  isOpenConfirmModal.value = false
-  onSubmit()
-}
-
-/**
- * Đóng modal
- */
-const handleCloseModal = () => {
-  console.log('handleCloseModal called')
-  emit('update:isOpen', false)
-  setTimeout(() => {
-    resetForm()
-    setErrors({})
-    clonedAssetData.value = null
-    isOpenConfirmModal.value = false
-    isOpenErrorModal.value = false
-    errorMessage.value = ''
-  }, 150)
-}
+const [assetTypeLifeTime, assetTypeLifeTimeAttrs] = defineField('assetTypeLifeTime')
 
 /**
  * Lấy dữ liệu hiện tại từ form
@@ -460,170 +375,116 @@ const getCurrentFormData = () => {
     price: price.value,
     depreciationRate: depreciationRate.value,
     annualDepreciation: annualDepreciation.value,
-    useYears: useYears.value,
+    assetTypeLifeTime: assetTypeLifeTime.value,
     purchaseDate: purchaseDate.value ? new Date(purchaseDate.value).getTime() : null,
     startDate: startDate.value ? new Date(startDate.value).getTime() : null,
   }
 }
 
-/**
- * Submit form - CHỈ validate khi bấm nút Lưu
- */
-const onSubmit = handleSubmit(
-  (values) => {
-    console.log('onSubmit - validation SUCCESS')
-
-    if (values.annualDepreciation > values.price) {
-      errorMessage.value = t('asset.depreciationExceedsPriceError')
-      isOpenErrorModal.value = true
-      return
-    }
-
-    const depreciationRateDecimal = (values.depreciationRate / 100).toFixed(4)
-    const expectedRate = (1 / values.useYears).toFixed(4)
-    if (depreciationRateDecimal !== expectedRate) {
-      errorMessage.value = 'Tỷ lệ hao mòn phải bằng 1/số năm sử dụng'
-      isOpenErrorModal.value = true
-      return
-    }
-
-    emit('submit', values)
-  },
-  ({ errors: validationErrors }) => {
-    console.log('onSubmit - validation FAILED', validationErrors)
-
-    const fieldOrder = [
-      'assetCode',
-      'assetName',
-      'departmentName',
-      'assetTypeName',
-      'quantity',
-      'price',
-      'depreciationRate',
-      'purchaseDate',
-      'startDate',
-      'useYears',
-      'annualDepreciation',
-    ]
-
-    const firstErrorKey = fieldOrder.find((field) => validationErrors[field])
-    const firstError = firstErrorKey
-      ? validationErrors[firstErrorKey]
-      : Object.values(validationErrors)[0]
-
-    errorMessage.value = firstError
-    isOpenErrorModal.value = true
-  }
-)
-
-/**
- * Đóng modal lỗi
- */
-const handleCloseErrorModal = () => {
-  isOpenErrorModal.value = false
-  errorMessage.value = ''
-}
-
-/**
- * Fill dữ liệu vào form
- */
-const setFormData = async (data) => {
-  if (!data) return
-
-  isLoadingData.value = true
-
-  assetCode.value = data.assetCode
-  assetName.value = data.assetName
-  quantity.value = data.quantity
-  price.value = data.price
-  useYears.value = data.useYear
-  depreciationRate.value = data.depreciationRate
-
-  if (data.startDate) {
-    startDate.value = new Date(data.startDate)
+  // ...
+  const setFormData = async (data) => {
+    // ...
+    assetTypeLifeTime.value = Number(
+      get(
+        data,
+        [
+          'assetTypeLifeTime',
+          'AssetTypeLifeTime',
+          'assetLifeTime',
+          'AssetLifeTime',
+          'lifeTime',
+          'lifetime',
+          'LifeTime',
+        ],
+        0
+      )
+    )
+    // ...
   }
 
-  if (data.purchaseDate) {
-    purchaseDate.value = new Date(data.purchaseDate)
-  }
+  // ...
+  watch([price, depreciationRate], () => {
+    // ...
+  })
 
-  if (departments.value.length > 0) {
-    const dept = departments.value.find((d) => d.departmentId === data.departmentId)
-    if (dept) {
-      departmentName.value = dept
-    }
-  }
-
-  if (assetTypes.value.length > 0) {
-    const assetType = assetTypes.value.find((t) => t.assetTypeId === data.assetTypeId)
-    if (assetType) {
-      assetTypeName.value = assetType
-    }
-  }
-
-  await nextTick()
-  annualDepreciation.value = data.annualDepreciation
-  isLoadingData.value = false
-}
-
-// Watchers
-watch([price, depreciationRate], () => {
-  if (!isLoadingData.value) {
-    annualDepreciation.value = (price.value * depreciationRate.value) / 100
-  }
-})
-
-watch(assetTypeName, () => {
-  depreciationRate.value = assetTypeName.value?.depreciationRate ?? 0
-  useYears.value = assetTypeName.value?.lifeTime ?? 0
-})
-
-watch(purchaseDate, () => {
-  trackingYear.value = purchaseDate.value?.getFullYear()
-})
-
-watch(
-  () => props.isOpen,
-  async () => {
-    if (!props.isOpen) {
-      resetForm()
-      setErrors({})
-      clonedAssetData.value = null
-      isOpenErrorModal.value = false
-      errorMessage.value = ''
-    } else if (props.mode === 'add') {
-      await nextTick()
-      firstInputRef.value?.focus()
-    } else if (props.mode === 'duplicate' && props.assetData) {
-      await setFormData(props.assetData)
-      await nextTick()
-      firstInputRef.value?.focus()
-    } else if (props.mode === 'edit' && props.assetData) {
-      await setFormData(props.assetData)
-
-      clonedAssetData.value = {
-        assetCode: props.assetData.assetCode,
-        assetName: props.assetName,
-        departmentId: props.assetData.departmentId,
-        departmentName: props.assetData.departmentName,
-        assetTypeId: props.assetData.assetTypeId,
-        assetTypeName: props.assetData.assetTypeName,
-        quantity: props.assetData.quantity,
-        price: props.assetData.price,
-        depreciationRate: props.assetData.depreciationRate,
-        annualDepreciation: props.assetData.annualDepreciation,
-        useYears: props.assetData.useYear,
-        purchaseDate: props.assetData.purchaseDate
-          ? new Date(props.assetData.purchaseDate).getTime()
-          : null,
-        startDate: props.assetData.startDate ? new Date(props.assetData.startDate).getTime() : null,
+  // ...
+  watch(assetTypeName, async (val) => {
+    // ...
+    if (typeof val === 'object' && val !== null) {
+      depreciationRate.value = Number(val?.assetTypeDepreciationRate ?? 0)
+      assetTypeLifeTime.value = Math.round(Number(val?.assetLifeTime ?? 0))
+      if ((!assetTypeLifeTime.value || Number(assetTypeLifeTime.value) === 0) && Number(depreciationRate.value) > 0) {
+        assetTypeLifeTime.value = Math.round(100 / Number(depreciationRate.value))
       }
+    }
+    // ...
+  })
+
+  // ...
+  const clonedAssetData = ref(null)
+  // ...
+  clonedAssetData.value = {
+    assetCode: props.assetData?.assetCode ?? props.assetData?.AssetCode ?? '',
+    assetName: props.assetData?.assetName ?? props.assetData?.AssetName ?? '',
+    departmentId: props.assetData?.departmentId ?? props.assetData?.DepartmentId ?? null,
+    departmentName: props.assetData?.departmentName ?? null,
+    assetTypeId: props.assetData?.assetTypeId ?? props.assetData?.AssetTypeId ?? null,
+    assetTypeName: props.assetData?.assetTypeName ?? null,
+    quantity: props.assetData?.quantity ?? props.assetData?.assetQuantity ?? 0,
+    price: props.assetData?.price ?? props.assetData?.assetPrice ?? 0,
+    depreciationRate: props.assetData?.depreciationRate ?? 0,
+    annualDepreciation:
+      props.assetData?.annualDepreciation ?? props.assetData?.assetAnnualDepreciation ?? 0,
+    assetTypeLifeTime:
+      props.assetData?.assetTypeLifeTime ??
+      props.assetData?.AssetTypeLifeTime ??
+      props.assetData?.assetLifeTime ??
+      props.assetData?.AssetLifeTime ??
+      0,
+    purchaseDate: props.assetData?.purchaseDate
+      ? new Date(props.assetData.purchaseDate).getTime()
+      : null,
+    startDate: props.assetData?.startDate
+      ? new Date(props.assetData.startDate).getTime()
+      : null,
+  }
 
       await nextTick()
-      firstInputRef.value?.focus()
+      safeFocus()
     }
   }
 )
+
+// Bỏ watcher nạp danh mục tự động để tránh race; dùng ensureCatalogsLoaded trong watcher trên
+
+// Helper: focus vào input thật sự trong MsInput
+function safeFocus() {
+  try {
+    const el = firstInputRef.value?.$el?.querySelector?.('input,textarea,[tabindex]')
+    if (el && typeof el.focus === 'function') el.focus()
+  } catch {}
+}
+
+// Nếu danh mục đến sau, tự map theo id khi modal đang mở
+watch([departments, () => props.assetData, () => props.isOpen], () => {
+  if (!props.isOpen) return
+  if (!(props.mode === 'edit' || props.mode === 'duplicate')) return
+  const did = props.assetData?.departmentId || props.assetData?.DepartmentId
+  if (did && !departmentName.value) {
+    const dept = departments.value.find(d => d.departmentId === did)
+    if (dept) departmentName.value = dept
+  }
+}, { deep: true })
+
+watch([assetTypes, () => props.assetData, () => props.isOpen], () => {
+  if (!props.isOpen) return
+  if (!(props.mode === 'edit' || props.mode === 'duplicate')) return
+  const tid = props.assetData?.assetTypeId || props.assetData?.AssetTypeId
+  if (tid && !assetTypeName.value) {
+    const at = assetTypes.value.find(t => t.assetTypeId === tid)
+    if (at) assetTypeName.value = at
+  }
+}, { deep: true })
 </script>
 
 <style>
@@ -640,6 +501,23 @@ watch(
 
 .text-right-input input {
   text-align: right !important;
+}
+
+/* Responsive modal */
+.modal-content {
+  width: var(--modal-width) !important;
+  font-size: var(--font-size-base);
+}
+
+.modal-footer {
+  height: var(--modal-footer-height) !important;
+}
+
+/* Label font-size responsive */
+@media (min-width: 1920px) {
+  .modal-content label {
+    font-size: 15px;
+  }
 }
 
 </style>

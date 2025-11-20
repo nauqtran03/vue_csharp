@@ -2,6 +2,7 @@
   <div class="ms-table-wrapper">
     <div class="ms-table-scroll-wrapper">
       <table class="ms-table">
+        <MsTableColGroup :fields="fields" :colWidths="colWidths" />
         <MsTableHeader
           :fields="fields"
           :colWidths="colWidths"
@@ -12,15 +13,16 @@
         <tbody class="ms-table-body">
           <tr
             v-for="(row, index) in paginatedRows"
-            :key="row.id || index"
-            :class="{ 'selected': selectedRows.includes(row.id) }"
+            :key="row[rowKey] || index"
+            :class="{ 'selected': selectedRows.includes(row[rowKey]) }"
           >
             <!-- Checkbox -->
             <td class="checkbox-col">
               <input
                 type="checkbox"
-                :checked="selectedRows.includes(row.id)"
-                @change="handleSelectRow(row.id, $event.target.checked)"
+                :checked="row[rowKey] != null && selectedRows.includes(row[rowKey])"
+                :disabled="row[rowKey] == null"
+                @change="handleSelectRow(row[rowKey], $event.target.checked)"
               />
             </td>
 
@@ -82,7 +84,7 @@
   </div>
 </template>
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import MsTableHeader from './MsTableHeader.vue'
 import MsTableFooter from './MsTableFooter.vue'
 import MsTableColGroup from './MsTableColGroup.vue'
@@ -95,6 +97,14 @@ const props = defineProps({
   rows: {
     type: Array,
     required: true
+  },
+  rowKey: {
+    type: String,
+    default: 'id'
+  },
+  selectionMode: {
+    type: String,
+    default: 'multiple' // 'multiple' | 'single'
   }
 })
 
@@ -115,33 +125,86 @@ const paginatedRows = computed(() => {
   return props.rows.slice(start, end)
 })
 
-// Tính tổng (ví dụ)
+// Tính tổng dựa trên 4 cột cuối (quantity, price, depreciation, residualValue)
+const summaryFields = computed(() => {
+  if (!props.fields || props.fields.length < 4) return []
+  return props.fields.slice(-4)
+})
+
 const totalAmount = computed(() => {
-  return props.rows.reduce((sum, row) => sum + (Number(row.nguyenGia) || 0), 0)
+  const field = summaryFields.value[1] // price field
+  if (!field) return 0
+  return props.rows.reduce((sum, row) => sum + (Number(row[field.key]) || 0), 0)
 })
 
 const totalDepreciation = computed(() => {
-  return props.rows.reduce((sum, row) => sum + (Number(row.hmKhHaoKe) || 0), 0)
+  const field = summaryFields.value[2] // depreciation field
+  if (!field) return 0
+  return props.rows.reduce((sum, row) => sum + (Number(row[field.key]) || 0), 0)
 })
 
 const totalValue = computed(() => {
-  return props.rows.reduce((sum, row) => sum + (Number(row.giaTriConLai) || 0), 0)
+  const field = summaryFields.value[3] // residualValue field
+  if (!field) return 0
+  return props.rows.reduce((sum, row) => sum + (Number(row[field.key]) || 0), 0)
 })
 
+// Đảm bảo single-select luôn chỉ có tối đa 1 id được chọn
+watch(
+  () => props.selectionMode,
+  (mode) => {
+    if (mode === 'single' && selectedRows.value.length > 1) {
+      selectedRows.value = selectedRows.value.slice(0, 1)
+      emit('selection-change', selectedRows.value)
+    }
+  }
+)
+
+// Khi rows thay đổi, loại bỏ các id không còn tồn tại và đảm bảo single-select
+watch(
+  () => props.rows,
+  (rows) => {
+    const ids = new Set(rows.map(r => r[props.rowKey]))
+    selectedRows.value = selectedRows.value.filter(id => ids.has(id))
+    if (props.selectionMode === 'single' && selectedRows.value.length > 1) {
+      selectedRows.value = selectedRows.value.slice(0, 1)
+    }
+    emit('selection-change', selectedRows.value)
+  },
+  { deep: true }
+)
+
 const handleSelectAll = (checked) => {
-  if (checked) {
-    selectedRows.value = props.rows.map(row => row.id)
+  if (props.selectionMode === 'single') {
+    if (checked) {
+      const first = props.rows[0]
+      const fid = first ? first[props.rowKey] : undefined
+      selectedRows.value = fid != null ? [fid] : []
+    } else {
+      selectedRows.value = []
+    }
   } else {
-    selectedRows.value = []
+    if (checked) {
+      selectedRows.value = props.rows
+        .map(row => row[props.rowKey])
+        .filter(id => id != null)
+    } else {
+      selectedRows.value = []
+    }
   }
   emit('selection-change', selectedRows.value)
 }
 
 const handleSelectRow = (id, checked) => {
-  if (checked) {
-    selectedRows.value.push(id)
+  if (id == null) return
+  if (props.selectionMode === 'single') {
+    selectedRows.value = checked ? [id] : []
   } else {
-    selectedRows.value = selectedRows.value.filter(rowId => rowId !== id)
+    if (checked) {
+      if (!selectedRows.value.includes(id)) selectedRows.value.push(id)
+    } else {
+      selectedRows.value = selectedRows.value.filter(rowId => rowId !== id)
+    }
   }
   emit('selection-change', selectedRows.value)
 }
@@ -174,7 +237,7 @@ const formatValue = (value, type) => {
 .ms-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--font-size-base);
   flex-shrink: 0;
 }
 
@@ -200,9 +263,9 @@ const formatValue = (value, type) => {
 
 /* Các cột phải có width giống nhau ở cả thead và tbody */
 .checkbox-col {
-  width: 36px !important;
-  min-width: 36px !important;
-  max-width: 36px !important;
+  width: var(--table-checkbox-width) !important;
+  min-width: var(--table-checkbox-width) !important;
+  max-width: var(--table-checkbox-width) !important;
   text-align: center;
   padding: 10px !important;
 }
@@ -215,18 +278,18 @@ const formatValue = (value, type) => {
 }
 
 .stt-col {
-  width: 50px !important;
-  min-width: 50px !important;
-  max-width: 50px !important;
+  width: var(--table-stt-width) !important;
+  min-width: var(--table-stt-width) !important;
+  max-width: var(--table-stt-width) !important;
   text-align: center;
   font-weight: 700;
   padding: 10px !important;
 }
 
 .action-col {
-  width: 100px !important;
-  min-width: 100px !important;
-  max-width: 100px !important;
+  width: var(--table-action-width) !important;
+  min-width: var(--table-action-width) !important;
+  max-width: var(--table-action-width) !important;
   text-align: center;
 }
 
@@ -239,7 +302,7 @@ const formatValue = (value, type) => {
 .ms-table-body tr {
   border-bottom: 1px solid #e0e0e0;
   transition: background-color 0.2s;
-  height: 40px;
+  height: var(--table-row-height);
 }
 
 .ms-table-body tr:hover {
@@ -257,15 +320,24 @@ const formatValue = (value, type) => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  height: 40px;
+  height: var(--table-row-height);
+  max-width: 0;
 }
 
 .text-left {
-  text-align: left;
+  text-align: left !important;
+  padding: 10px 8px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .text-right {
-  text-align: right;
+  text-align: right !important;
+  padding: 10px 8px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Action buttons - ẩn mặc định, hiện khi hover row */

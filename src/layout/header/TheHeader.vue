@@ -3,14 +3,14 @@
     <!-- Header left -->
     <div class="header-left d-flex align-items-center gap-24">
       <div class="title d-flex align-items-center">
-        <span class="text">{{ t('header.title') }}</span>
+        <span class="text">{{ pageTitle}}</span>
       </div>
     </div>
     <!-- Header right -->
     <div class="header-right d-flex align-items-center">
-      <span class="link">{{ t('header.link') }}</span>
+      <span class="link">Sở tài chính</span>
       <div class="select-year align-items-center">
-        <span class="select-year-text">{{ t('header.year') }}</span>
+        <span class="select-year-text">Năm</span>
         <span class="select-year-number">2025</span>
         <div class="d-flex flex-direction-column gap-2">
           <span class="icon up-icon"></span>
@@ -30,15 +30,23 @@
   </div>
 </template>
 <script setup>
-import { useI18n } from 'vue-i18n';
+import { useRoute } from 'vue-router'
+import { computed } from 'vue';
 
-const { t } = useI18n();
+const route = useRoute()
+
+// Hàm đọc title từ route meta
+// Created by: TQQUAN - 18/11/2025
+const pageTitle = computed(() => {
+  return route.meta.title || 'MISA QLTS'
+})
+
 </script>
 <style scoped>
 /* Header */
 .header {
-  height: 44px;
-  padding: 0 20px;
+  height: var(--header-height);
+  padding: 0 var(--page-padding-x);
   white-space: nowrap;
   overflow: hidden;
   background-color: #ffffff;

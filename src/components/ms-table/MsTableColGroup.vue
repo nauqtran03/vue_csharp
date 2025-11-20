@@ -1,13 +1,13 @@
 <template>
   <colgroup>
-    <col style="width: 36px" />
-    <col style="width: 50px" />
+    <col :style="{ width: 'var(--table-checkbox-width)' }" />
+    <col :style="{ width: 'var(--table-stt-width)' }" />
     <col
       v-for="field in fields"
       :key="field.key"
       :style="{ width: colWidths[field.key] || field.width || field.minWidth || '100px' }"
     />
-    <col style="width: 100px" />
+    <col :style="{ width: 'var(--table-action-width)' }" />
   </colgroup>
 </template>
 

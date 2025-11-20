@@ -107,12 +107,14 @@
 
 <script setup>
 //#region Imports
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import MsInput from '@/components/ms-input/MsInput.vue'
 import MsFilterSelect from '@/components/ms-filter/MsFilterSelect.vue'
 import MsTable from '@/components/ms-table/MsTable.vue'
 import MsButton from '@/components/ms-button/MsButton.vue'
 import AssetModal from './AssetModal.vue'
+import { useI18n } from 'vue-i18n'
+import APIAsset from '@/apis/components/APIAsset.js'
 //#endregion
 
 //#region State - Filter
@@ -135,284 +137,22 @@ const departments = ref([
 //#endregion
 
 //#region State - Table
+const { t } = useI18n()
 
+// Giá trị mặc định cho tableFields (responsive theo màn hình)
 const tableFields = ref([
-  { key: 'maTaiSan', label: 'Mã tài sản', type: 'text', width: '80px', minWidth: '80px' },
-  { key: 'tenTaiSan', label: 'Tên tài sản', type: 'text', width: '200px', minWidth: '150px' },
-  { key: 'loaiTaiSan', label: 'Loại tài sản', type: 'text', width: '200px', minWidth: '150px' },
-  { key: 'boPhanSuDung', label: 'Bộ phận sử dụng', type: 'text', width: '200px', minWidth: '150px' },
-  { key: 'soLuong', label: 'Số lượng', type: 'number', width: '100px', minWidth: '100px' },
-  { key: 'nguyenGia', label: 'Nguyên giá', type: 'number', width: '100px', minWidth: '100px' },
-  { key: 'hmKhHaoKe', label: 'HM/KH lũy kế', type: 'number', width: '100px', minWidth: '100px' },
-  { key: 'giaTriConLai', label: 'Giá trị còn lại', type: 'number', width: '100px', minWidth: '100px' }
+  { key: 'assetCode', label: t('table.assetCode'), type: 'text', width: '100px', minWidth: '90px' },
+  { key: 'assetName', label: t('table.assetName'), type: 'text', width: '200px', minWidth: '150px' },
+  { key: 'assetTypeName', label: t('table.assetTypeName'), type: 'text', width: '150px', minWidth: '120px' },
+  { key: 'departmentName', label: t('table.departmentName'), type: 'text', width: '150px', minWidth: '120px' },
+  { key: 'assetQuantity', label: t('table.quantity'), type: 'number', width: '80px', minWidth: '70px' },
+  { key: 'assetPrice', label: t('table.price'), type: 'number', width: '120px', minWidth: '100px' },
+  { key: 'assetAnnualDepreciation', label: t('table.annualDepreciation'), type: 'number', width: '120px', minWidth: '100px' },
+  { key: 'residualValue', label: t('table.residualValue'), type: 'number', width: '100px', minWidth: '100px' }
 ])
-const tableRows = ref([
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-{
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
 
-{
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-  {
-    id: 1,
-    maTaiSan: 'TS00001',
-    tenTaiSan: 'Dell Inspiron 3467',
-    loaiTaiSan: 'Máy vi tính xách tay',
-    boPhanSuDung: 'Phòng Hành chính Kế toán',
-    soLuong: 1,
-    nguyenGia: 20000000,
-    hmKhHaoKe: 894000,
-    giaTriConLai: 19106000
-  },
-])
+const tableRows = ref([])
+
 //#endregion
 
 //#region State - Modal
@@ -450,7 +190,18 @@ const handleDeleteSelected = () => {
   }
 
   console.log('Delete selected:', selectedRows.value)
-  // TODO: Show confirm modal and delete
+  // Chuẩn hóa danh sách ID gửi về BE (List<Guid>)
+  const ids = selectedRows.value.map((x) => {
+    if (typeof x === 'string') return x
+    return x?.assetId || x?.AssetId
+  }).filter(Boolean)
+
+  // Gọi API xóa nhiều và tải lại dữ liệu
+  APIAsset.deleteMultiple(ids)
+    .then(() => {
+      loadAssets()
+    })
+    .catch((err) => console.error('Delete multiple error:', err))
 }
 //#endregion
 
@@ -487,28 +238,147 @@ const handleSelectionChange = (selectedIds) => {
  * Xử lý submit form từ modal
  */
 const handleSubmitAsset = (formData) => {
-  console.log('Submit asset:', formData)
+  console.log('Submit asset - formData:', formData)
+  console.log('Submit asset - selectedAsset:', selectedAsset.value)
 
-  if (modalMode.value === 'add') {
-    // TODO: Call API to add asset
-    console.log('Adding new asset...')
-  } else if (modalMode.value === 'edit') {
-    // TODO: Call API to update asset
-    console.log('Updating asset...')
-  } else if (modalMode.value === 'duplicate') {
-    // TODO: Call API to duplicate asset
-    console.log('Duplicating asset...')
+  // Chuẩn hóa body gửi BE theo entity Asset
+  const payload = {
+    AssetCode: formData.assetCode ?? formData.AssetCode,
+    AssetName: formData.assetName ?? formData.AssetName,
+    AssetPurchaseDate: formData.purchaseDate
+      ? new Date(formData.purchaseDate)
+      : formData.AssetPurchaseDate
+      ? new Date(formData.AssetPurchaseDate)
+      : null,
+    AssetStartDate: formData.startDate
+      ? new Date(formData.startDate)
+      : formData.AssetStartDate
+      ? new Date(formData.AssetStartDate)
+      : null,
+    // AssetUseYear: lưu NĂM (yyyy), cắt ra từ ngày mua hoặc ngày bắt đầu sử dụng,
+    // KHÔNG dùng useYears (số năm sử dụng)
+    AssetUseYear: (() => {
+      const srcDate = formData.startDate || formData.purchaseDate || formData.AssetStartDate || formData.AssetPurchaseDate
+      if (srcDate) {
+        const d = new Date(srcDate)
+        if (!Number.isNaN(d.getTime())) return d.getFullYear()
+      }
+      return Number(formData.AssetUseYear ?? 0)
+    })(),
+    AssetDepreciationRate: Number(
+      formData.depreciationRate ?? formData.AssetDepreciationRate ?? 0
+    ),
+    AssetQuantity: Number(formData.quantity ?? formData.AssetQuantity ?? 0),
+    AssetPrice: Number(formData.price ?? formData.AssetPrice ?? 0),
+    AssetAnnualDepreciation: Number(
+      formData.annualDepreciation ?? formData.AssetAnnualDepreciation ?? 0
+    ),
+    DepartmentId:
+      formData.departmentId ||
+      formData.DepartmentId ||
+      formData.departmentName?.departmentId ||
+      formData.Department?.DepartmentId ||
+      null,
+    AssetTypeId:
+      formData.assetTypeId ||
+      formData.AssetTypeId ||
+      formData.assetTypeName?.assetTypeId ||
+      formData.AssetType?.AssetTypeId ||
+      null,
   }
 
-  // Close modal after submit
-  isModalOpen.value = false
+  console.log('Payload to send:', payload)
+
+  let action
+  if (modalMode.value === 'add' || modalMode.value === 'duplicate') {
+    action = APIAsset.create(payload)
+  } else if (modalMode.value === 'edit') {
+    // Lấy id từ selectedAsset (đã được set khi click Edit)
+    const id = selectedAsset.value?.assetId || selectedAsset.value?.AssetId || formData.assetId || formData.AssetId
+    console.log('Update with ID:', id)
+    if (!id) {
+      console.error('Cannot update: Asset ID is missing')
+      alert('Không thể cập nhật: Thiếu ID tài sản')
+      return
+    }
+    action = APIAsset.update(id, payload)
+  }
+
+  if (action) {
+    action
+      .then((response) => {
+        console.log('Success response:', response)
+        loadAssets()
+      })
+      .catch((error) => {
+        console.error('API Error:', error)
+        console.error('Error response:', error.response?.data)
+        alert(`Lỗi: ${error.response?.data?.message || error.message || 'Không thể lưu dữ liệu'}`)
+      })
+      .finally(() => {
+        isModalOpen.value = false
+      })
+  } else {
+    isModalOpen.value = false
+  }
 }
+//#endregion
+
+//#region API - Load Data
+/**
+ * Load dữ liệu từ backend
+ * Backend có thể trả về fields hoặc không
+ */
+const loadAssets = async () => {
+  try {
+    const response = await APIAsset.list()
+    if (response.data?.success) {
+      const items = response.data.data || []
+      tableRows.value = items.map(mapAssetToRow)
+    } else if (Array.isArray(response.data)) {
+      // Trường hợp BE trả mảng thô
+      tableRows.value = response.data.map(mapAssetToRow)
+    }
+  } catch (error) {
+    console.error('Load assets error:', error)
+  }
+}
+
+function mapAssetToRow(a) {
+  const assetId = a.assetId ?? a.AssetId
+  return {
+    id: assetId, // Thêm id cho checkbox
+    assetId: assetId,
+    assetCode: a.assetCode ?? a.AssetCode,
+    assetName: a.assetName ?? a.AssetName,
+    assetTypeName: a.assetTypeName ?? a.AssetTypeName ?? '',
+    departmentName: a.departmentName ?? a.DepartmentName ?? '',
+    assetQuantity: a.assetQuantity ?? a.AssetQuantity ?? 0,
+    assetPrice: a.assetPrice ?? a.AssetPrice ?? 0,
+    assetAnnualDepreciation: a.assetAnnualDepreciation ?? a.AssetAnnualDepreciation ?? 0,
+    residualValue: a.residualValue ?? a.ResidualValue ?? 0,
+   // Thêm các trường cần thiết cho edit
+    departmentId: a.departmentId ?? a.DepartmentId,
+ assetTypeId: a.assetTypeId ?? a.AssetTypeId,
+    purchaseDate: a.purchaseDate ?? a.PurchaseDate,
+    startDate: a.startDate ?? a.StartDate,
+    depreciationRate: a.depreciationRate ?? a.DepreciationRate ?? 0,
+    // Số năm sử dụng của LOẠI tài sản (asset_type_lifetime) dùng riêng cho lifetime,
+    // không dùng useYear nữa để tránh nhầm với AssetUseYear (năm yyyy)
+    assetTypeLifeTime: a.assetLifeTime ?? a.AssetLifeTime ?? a.assetTypeLifeTime ?? a.AssetTypeLifeTime ?? 0,
+  }
+}
+
+// Load data khi component mount
+onMounted(() => {
+  loadAssets()
+})
 //#endregion
 </script>
 
 <style scoped>
 .asset-page {
-  padding: 14px 20px;
+  padding: var(--page-padding-y) var(--page-padding-x);
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -517,8 +387,8 @@ const handleSubmitAsset = (formData) => {
 
 .toolbar {
   border-radius: 4px;
-  margin-bottom: 16px;
-  gap: 12px;
+  margin-bottom: var(--toolbar-margin);
+  gap: var(--toolbar-gap);
   flex-wrap: nowrap;
 }
 

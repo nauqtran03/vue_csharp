@@ -20,7 +20,10 @@
         :style="{
           width: colWidths[field.key] || field.width || 'auto'
         }"
-        :class="['resizable-col', field.type === 'number' ? 'text-right' : 'text-left']"
+        :class="[
+          'resizable-col',
+          field.align ? `text-${field.align}` : (field.type === 'number' ? 'text-right' : 'text-left')
+        ]"
       >
         <slot :name="`header-${field.key}`" :field="field">
           {{ field.label }}
@@ -108,13 +111,13 @@ const onResizeEnd = () => {
 .ms-table-header tr {
   border-bottom: 1px solid #e0e0e0;
   width: 100%;
-  height: 38px;
+  height: var(--table-header-height);
 }
 
 .ms-table-header th {
   padding: 10px 8px;
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--font-size-base);
   color: #333;
   white-space: nowrap;
   overflow: hidden;
@@ -122,14 +125,14 @@ const onResizeEnd = () => {
   position: relative;
   user-select: none;
   box-sizing: border-box;
-  height: 38px;
+  height: var(--table-header-height);
 }
 
 /* Width phải giống với tbody */
 .checkbox-col {
-  width: 36px !important;
-  min-width: 36px !important;
-  max-width: 36px !important;
+  width: var(--table-checkbox-width) !important;
+  min-width: var(--table-checkbox-width) !important;
+  max-width: var(--table-checkbox-width) !important;
   text-align: center;
   padding: 10px !important;
 }
@@ -143,17 +146,17 @@ const onResizeEnd = () => {
 }
 
 .stt-col {
-  width: 50px !important;
-  min-width: 50px !important;
-  max-width: 50px !important;
+  width: var(--table-stt-width) !important;
+  min-width: var(--table-stt-width) !important;
+  max-width: var(--table-stt-width) !important;
   text-align: center;
   padding: 10px !important;
 }
 
 .action-col {
-  width: 100px !important;
-  min-width: 100px !important;
-  max-width: 100px !important;
+  width: var(--table-action-width) !important;
+  min-width: var(--table-action-width) !important;
+  max-width: var(--table-action-width) !important;
   text-align: center;
 }
 
@@ -164,10 +167,26 @@ const onResizeEnd = () => {
 
 .text-left {
   text-align: left !important;
+  padding: 10px 8px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .text-right {
   text-align: right !important;
+  padding: 10px 8px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.text-center {
+  text-align: center !important;
+  padding: 10px 8px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-content {

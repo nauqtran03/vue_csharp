@@ -8,7 +8,11 @@
 
     <!-- Menu list sidebar -->
     <ul class="sidebar-list d-flex flex-1 align-items-center flex-direction-column">
-      <li v-for="item in menuItems" :key="item.id"
+      <li
+        v-for="item in menuItems"
+        :key="item.id"
+        :class="{'active':isActive(item.path)}"
+        @click="navigateTo(item.path)"
         class="sidebar-item w-100 d-flex align-items-center justify-content-between px-3 py-2">
         <div class="d-flex gap-12 ">
           <span :class="`icon ${item.icon}`"></span>
@@ -29,6 +33,7 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { sidebarData } from '@/contants/sidebarData';
 import MsButton from '@/components/ms-button/MsButton.vue';
@@ -38,9 +43,27 @@ const { t } = useI18n();
 const isShow = ref(true);
 const menuItems = computed(() => sidebarData(t));
 const autoCollapseWidth = 800;
+const router = useRouter()
+const route = useRoute()
 //#endregion
 
 //#region Methods
+/**
+ * Hàm check active định tuyên
+ * createdby: TQQUAN (18/11/2025)
+ */
+const isActive = (path) => {
+  return route.path === path
+}
+/**
+ * Hàm điều hướng tới định tuyến
+ * createdby: TQQUAN (18/11/2025)
+ */
+const navigateTo = (path) => {
+  if (path) {
+    router.push(path)
+  }
+}
 /**
  * Hàm xử lý thu gọn sidebar
  * createdby: TQQUAN (14/11/2025)
@@ -48,7 +71,6 @@ const autoCollapseWidth = 800;
 const handleToggle = () => {
   isShow.value = !isShow.value;
 }
-
 /**
  * Hàm xử lý tự động thu gọn sidebar khi nhỏ hơn kích thước quy định
  * createdby: TQQUAN (14/11/2025)
@@ -76,7 +98,7 @@ onUnmounted(() => {
 <style scoped>
 .sidebar {
   background: var(--sidebar-bg);
-  width: 220px;
+  width: var(--sidebar-width);
   height: 100vh;
   transition: width 0.3s ease;
   overflow: hidden;
@@ -171,6 +193,17 @@ onUnmounted(() => {
   line-height: 24px;
   display: flex;
   align-items: center;
+}
+.sidebar-item.active {
+  background: var(--sidebar-bg-hover);
+}
+
+.sidebar-item.active .label {
+  color: var(--sidebar-text-hover);
+}
+
+.sidebar-item.active .icon {
+  background-color: var(--sidebar-text-hover);
 }
 
 .collapsed .sidebar-item:hover {

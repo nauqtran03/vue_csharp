@@ -9,7 +9,7 @@
       <TheHeader />
       <!-- Main content area -->
       <div class="main-content d-flex flex-1 flex-direction-column w-100">
-        <AssetPage />
+        <router-view />
       </div>
     </div>
   </div>
@@ -18,7 +18,6 @@
 <script setup>
 import TheSidebar from './sidebar/TheSidebar.vue';
 import TheHeader from './header/TheHeader.vue';
-import AssetPage from '@/views/AssetPage.vue';
 </script>
 
 <style scoped>

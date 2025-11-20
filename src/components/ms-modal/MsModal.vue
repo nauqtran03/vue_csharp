@@ -39,7 +39,7 @@ defineProps({
 
 .modal-content {
   position: relative;
-  width: 730px;
+  width: 900px;
   max-height: 90vh;
   background: white;
   z-index: 1000;
@@ -68,8 +68,8 @@ defineProps({
 
 /* Footer của Modal */
 .modal-footer {
-  height: 52px;
-  padding: 0 16px;
+  height: var(--modal-footer-height);
+  padding: 0 var(--modal-padding);
   gap: 10px;
   background-color: #f5f5f5;
   display: flex;

@@ -23,7 +23,6 @@
         @update:modelValue="$emit('update:modelValue', $event)"
         :options="options"
         :optionLabel="optionLabel"
-        :optionValue="optionValue"
         :placeholder="placeholder"
         :disabled="disabled"
         :class="selectClass"

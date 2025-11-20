@@ -1,7 +1,8 @@
 <template>
   <tfoot class="ms-table-footer">
     <tr>
-      <td colspan="6" class="pagination-cell">
+      <!-- Pagination cell - colspan cho các cột không có summary -->
+      <td :colspan="paginationColspan" class="pagination-cell">
         <div class="footer-left">
           <span class="total-text"
             >Tổng số: <strong>{{ totalRows }}</strong> bản ghi</span
@@ -52,34 +53,17 @@
         </div>
       </td>
 
+      <!-- Summary columns - 4 cột cuối -->
       <td
+        v-for="field in summaryFields"
+        :key="field.key"
         class="summary-value text-right"
-        :style="getColStyle(summaryFields[0])"
+        :style="getColStyle(field)"
       >
-        {{ selectedCount }}
+        {{ getSummaryValue(field) }}
       </td>
 
-      <td
-        class="summary-value text-right"
-        :style="getColStyle(summaryFields[1])"
-      >
-        {{ formatNumber(totalAmount) }}
-      </td>
-
-      <td
-        class="summary-value text-right"
-        :style="getColStyle(summaryFields[2])"
-      >
-        {{ formatNumber(totalDepreciation) }}
-      </td>
-
-      <td
-        class="summary-value text-right"
-        :style="getColStyle(summaryFields[3])"
-      >
-        {{ formatNumber(totalValue) }}
-      </td>
-
+      <!-- Action col -->
       <td class="action-col"></td>
     </tr>
   </tfoot>
@@ -129,12 +113,28 @@ const props = defineProps({
 
 defineEmits(['update:currentPage', 'update:pageSize'])
 
-// Lấy 4 trường cuối cùng
+// Lấy 4 trường cuối cùng (quantity, price, depreciation, residualValue)
 const summaryFields = computed(() => {
   if (!props.fields || props.fields.length === 0) return []
-  // Lấy 4 trường cuối cùng trong mảng fields
   return props.fields.slice(-4)
 })
+
+// Colspan = 6 (checkbox + STT + 4 cot dau)
+const paginationColspan = computed(() => {
+  return 6
+})
+
+// Lấy giá trị summary tương ứng với field
+const getSummaryValue = (field) => {
+  const index = summaryFields.value.indexOf(field)
+  switch (index) {
+    case 0: return props.selectedCount
+    case 1: return formatNumber(props.totalAmount)
+    case 2: return formatNumber(props.totalDepreciation)
+    case 3: return formatNumber(props.totalValue)
+    default: return ''
+  }
+}
 
 // Hàm lấy style width như trong Header và Body
 const getColStyle = (field) => {
@@ -196,7 +196,7 @@ const formatNumber = (value) => {
 
 .ms-table-footer tr,
 .ms-table-footer td {
-  height: 40px;
+  height: var(--table-footer-height);
   padding: 10px 8px;
   box-sizing: border-box;
 }
@@ -218,24 +218,38 @@ const formatNumber = (value) => {
 }
 
 .summary-value {
-  text-align: right;
-  font-size: 13px;
+  text-align: right !important;
+  font-size: var(--font-size-base);
   color: #333;
   font-weight: 700;
   white-space: nowrap;
-  padding: 10px 8px;
+  padding: 10px 8px !important;
+  box-sizing: border-box;
+}
+
+.checkbox-col {
+  width: var(--table-checkbox-width) !important;
+  min-width: var(--table-checkbox-width) !important;
+  max-width: var(--table-checkbox-width) !important;
+  box-sizing: border-box;
+}
+
+.stt-col {
+  width: var(--table-stt-width) !important;
+  min-width: var(--table-stt-width) !important;
+  max-width: var(--table-stt-width) !important;
   box-sizing: border-box;
 }
 
 .action-col {
-  width: 105px !important;
-  min-width: 105px !important;
-  max-width: 105px !important;
+  width: var(--table-action-width) !important;
+  min-width: var(--table-action-width) !important;
+  max-width: var(--table-action-width) !important;
   box-sizing: border-box;
 }
 
 .total-text {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   color: #666;
   white-space: nowrap;
   flex-shrink: 0;
@@ -248,7 +262,7 @@ const formatNumber = (value) => {
   padding: 6px 12px;
   border: 1px solid #d0d0d0;
   border-radius: 3px;
-  font-size: 13px;
+  font-size: var(--font-size-base);
   cursor: pointer;
   background: #ffffff;
   min-width: 60px;
@@ -275,7 +289,7 @@ const formatNumber = (value) => {
   border: 1px solid #d0d0d0;
   background: #ffffff;
   border-radius: 3px;
-  font-size: 13px;
+  font-size: var(--font-size-base);
   cursor: pointer;
   width: 20px;
   height: 20px;

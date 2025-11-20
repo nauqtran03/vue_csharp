@@ -1,0 +1,108 @@
+
+/* Base: Màn hình 1366px */
+:root {
+  /* Spacing */
+  --page-padding-y: 16px;
+  --page-padding-x: 24px;
+  --toolbar-gap: 12px;
+  --toolbar-margin: 16px;
+  --element-gap: 8px;
+
+  /* Sidebar */
+  --sidebar-width: 220px;
+  --sidebar-width-collapsed: 56px;
+
+  /* Typography */
+  --font-size-base: 13px;
+  --font-size-large: 14px;
+  --font-size-small: 12px;
+
+  /* Components */
+  --input-height: 36px;
+  --button-height-small: 30px;
+  --button-height: 34px;
+  --button-height-large: 36px;
+  --table-row-height: 40px;
+  --header-height: 52px;
+
+  /* Table */
+  --table-header-height: 40px;
+  --table-footer-height: 44px;
+  --table-checkbox-width: 36px;
+  --table-stt-width: 50px;
+  --table-action-width: 100px;
+
+  /* Modal */
+  --modal-width: 900px;
+  --modal-padding: 24px;
+  --modal-gap: 16px;
+  --modal-footer-height: 56px;
+}
+
+/* Màn hình 1920px trở lên */
+@media (min-width: 1920px) {
+  :root {
+    /* Spacing */
+    --page-padding-y: 24px;
+    --page-padding-x: 40px;
+    --toolbar-gap: 16px;
+    --toolbar-margin: 24px;
+    --element-gap: 12px;
+
+    /* Sidebar */
+    --sidebar-width: 240px;
+    --sidebar-width-collapsed: 64px;
+
+    /* Typography */
+    --font-size-base: 14px;
+    --font-size-large: 15px;
+    --font-size-small: 13px;
+
+    /* Components */
+    --input-height: 40px;
+    --button-height-small: 34px;
+    --button-height: 38px;
+    --button-height-large: 42px;
+    --table-row-height: 48px;
+    --header-height: 60px;
+
+    /* Table */
+    --table-header-height: 48px;
+    --table-footer-height: 52px;
+    --table-checkbox-width: 40px;
+    --table-stt-width: 60px;
+    --table-action-width: 120px;
+
+    /* Modal */
+    --modal-width: 1100px;
+    --modal-padding: 32px;
+    --modal-gap: 24px;
+    --modal-footer-height: 68px;
+  }
+}
+
+/* Responsive cho Table columns width */
+@media (min-width: 1920px) {
+  /* Tăng kích thước các cột trong table */
+  .ms-table th,
+  .ms-table td {
+    font-size: 14px;
+  }
+
+  .ms-table-header th {
+    height: var(--table-header-height);
+  }
+
+  .ms-table-body tr {
+    height: var(--table-row-height);
+  }
+
+  .ms-table-body td {
+    height: var(--table-row-height);
+  }
+
+  .ms-table-footer tr,
+  .ms-table-footer td {
+    height: var(--table-footer-height);
+  }
+}

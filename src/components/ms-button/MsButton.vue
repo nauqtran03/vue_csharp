@@ -73,20 +73,20 @@ const typeClass = computed(() => `ms-button-${props.buttonType}`)
 /* Sizes */
 .ms-button-small {
   padding: 4px 12px;
-  font-size: 12px;
-  height: 28px;
+  font-size: var(--font-size-small);
+  height: var(--button-height-small);
 }
 
 .ms-button-medium {
   padding: 8px 16px;
-  font-size: 13px;
-  height: 36px;
+  font-size: var(--font-size-base);
+  height: var(--button-height);
 }
 
 .ms-button-large {
   padding: 10px 20px;
-  font-size: 14px;
-  height: 36px;
+  font-size: var(--font-size-large);
+  height: var(--button-height-large);
   width: 100px;
 }
 
