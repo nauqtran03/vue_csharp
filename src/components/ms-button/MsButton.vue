@@ -42,6 +42,10 @@ const props = defineProps({
   buttonClass: {
     type: String,
     default: ''
+  },
+  tabindex: {
+    type: [Number, String],
+    default: undefined
   }
 })
 
@@ -152,8 +156,9 @@ const typeClass = computed(() => `ms-button-${props.buttonType}`)
 }
 
 .ms-button-danger:hover:not(:disabled) {
-  background: #f5f5f5;
+  background: #ffffff;
   border-color: #b0b0b0;
+  color: #ffffff;
 }
 
 .ms-button-secondary {

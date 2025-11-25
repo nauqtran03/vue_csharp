@@ -12,7 +12,7 @@ export default class BaseAPI {
     return api.get(`${this.controller}`)
   }
   /**
-   * Hàm lấy thông tin tài sản theo ID
+   * Hàm lấy thông tin  theo ID
    * @param {string} id - ID của tài sản
    * @param {Object} payload - Payload của request
    * createdby: TQQUAN

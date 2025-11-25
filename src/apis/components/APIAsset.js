@@ -7,9 +7,9 @@ class APIAsset extends BaseAPI {
     this.controller = 'Assets'
   }
 
-  // Lấy danh sách (endpoint tuỳ chỉnh)
-  list() {
-    return api.get(`${this.controller}/list`)
+  // Lấy danh sách với filter, search, pagination
+  list(params = {}) {
+    return api.get(`${this.controller}/list`, { params })
   }
 
   // Tạo bản ghi mới
@@ -30,6 +30,11 @@ class APIAsset extends BaseAPI {
   // Sinh mã mới
   generateNewCode() {
     return super.generateNewCode()
+  }
+
+  // Kiểm tra trùng mã tài sản
+  checkDuplicateCode(code) {
+    return api.get(`${this.controller}/checkexistcode/${code}`)
   }
 }
 

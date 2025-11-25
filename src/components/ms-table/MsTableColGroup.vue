@@ -7,7 +7,7 @@
       :key="field.key"
       :style="{ width: colWidths[field.key] || field.width || field.minWidth || '100px' }"
     />
-    <col :style="{ width: 'var(--table-action-width)' }" />
+    <col :style="{ width: '100px' }" />
   </colgroup>
 </template>
 

@@ -80,6 +80,10 @@ defineProps({
   inputClass: {
     type: String,
     default: ''
+  },
+  tabindex: {
+    type: [Number, String],
+    default: undefined
   }
 })
 
@@ -130,7 +134,7 @@ defineEmits(['update:modelValue'])
 }
 
 .ms-input-container.medium {
-  height: 32px;
+  height: 34px;
 }
 
 .ms-input-container.small {

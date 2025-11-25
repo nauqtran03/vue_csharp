@@ -132,7 +132,7 @@ onUnmounted(() => {
 
 .sidebar ul li:hover {
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 6px;
   background: var(--sidebar-bg-hover);
 }
 
@@ -196,6 +196,7 @@ onUnmounted(() => {
 }
 .sidebar-item.active {
   background: var(--sidebar-bg-hover);
+  border-radius: 6px;
 }
 
 .sidebar-item.active .label {

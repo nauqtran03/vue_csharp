@@ -62,5 +62,6 @@ app.config.globalProperties.$primevue.config.locale = {
     'Th11',
     'Th12',
   ],
+  firstDayOfWeek: 1,
 }
 app.mount('#app')

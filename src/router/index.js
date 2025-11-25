@@ -8,6 +8,7 @@ const router = createRouter({
     {
       path:'/',
       component: TheLayout,
+      redirect: '/asset',
       children: [
         {
           path:'asset',

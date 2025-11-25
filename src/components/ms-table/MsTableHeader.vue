@@ -22,7 +22,7 @@
         }"
         :class="[
           'resizable-col',
-          field.align ? `text-${field.align}` : (field.type === 'number' ? 'text-right' : 'text-left')
+          field.align ? `text-${field.align}` : (['number', 'currency'].includes(field.type) ? 'text-right' : 'text-left')
         ]"
       >
         <slot :name="`header-${field.key}`" :field="field">
@@ -83,6 +83,8 @@ const onResizeMove = (event) => {
   const diff = event.pageX - startX.value
   const field = props.fields.find(f => f.key === currentColumn.value)
   const minWidth = field?.minWidth ? parseInt(field.minWidth) : 80
+  
+  // Không giới hạn maxWidth để cho phép scroll ngang
   const newWidth = Math.max(minWidth, startWidth.value + diff)
 
   emit('update:colWidths', {
@@ -154,9 +156,9 @@ const onResizeEnd = () => {
 }
 
 .action-col {
-  width: var(--table-action-width) !important;
-  min-width: var(--table-action-width) !important;
-  max-width: var(--table-action-width) !important;
+  width: 100px !important;
+  min-width: 100px !important;
+  max-width: 100px !important;
   text-align: center;
 }
 
@@ -203,10 +205,14 @@ const onResizeEnd = () => {
   user-select: none;
   background: transparent;
   z-index: 20;
+  border-right: 1px solid transparent;
+  transition: all 0.2s ease;
 }
 
-.resizer:hover {
-  background: #ddd;
+/* Hiển thị resizer khi hover vào header cell */
+.resizable-col:hover .resizer {
+  background: rgba(0, 0, 0, 0.05);
+  border-right: 1px solid #999;
 }
 
 

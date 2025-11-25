@@ -1,9 +1,10 @@
-
-/* Base: Màn hình 1366px */
+/*
+   Base: 1366px 
+*/
 :root {
   /* Spacing */
-  --page-padding-y: 16px;
-  --page-padding-x: 24px;
+  --page-padding-y: 20px;
+  --page-padding-x: 16px;
   --toolbar-gap: 12px;
   --toolbar-margin: 16px;
   --element-gap: 8px;
@@ -31,34 +32,46 @@
   --table-checkbox-width: 36px;
   --table-stt-width: 50px;
   --table-action-width: 100px;
+  
+  /* Table Column Widths */
+  --col-asset-code: 100px;
+  --col-asset-name: 180px;
+  --col-asset-type: 180px;
+  --col-department: 180px;
+  --col-quantity: 80px;
+  --col-price: 120px;
+  --col-depreciation: 120px;
+  --col-residual: 120px;
 
   /* Modal */
-  --modal-width: 900px;
+  --modal-width: 800px;
   --modal-padding: 24px;
   --modal-gap: 16px;
   --modal-footer-height: 56px;
 }
 
-/* Màn hình 1920px trở lên */
+/*
+ Màn hình 1920px
+*/
 @media (min-width: 1920px) {
   :root {
-    /* Spacing */
+    /* Spacing - Tăng padding */
     --page-padding-y: 24px;
-    --page-padding-x: 40px;
+    --page-padding-x: 20px;
     --toolbar-gap: 16px;
     --toolbar-margin: 24px;
     --element-gap: 12px;
 
-    /* Sidebar */
+    /* Sidebar - Rộng hơn */
     --sidebar-width: 240px;
     --sidebar-width-collapsed: 64px;
 
-    /* Typography */
+    /* Typography - Font lớn hơn */
     --font-size-base: 14px;
     --font-size-large: 15px;
     --font-size-small: 13px;
 
-    /* Components */
+    /* Components - Cao hơn */
     --input-height: 40px;
     --button-height-small: 34px;
     --button-height: 38px;
@@ -66,14 +79,24 @@
     --table-row-height: 48px;
     --header-height: 60px;
 
-    /* Table */
+    /* Table - Lớn hơn */
     --table-header-height: 48px;
     --table-footer-height: 52px;
     --table-checkbox-width: 40px;
     --table-stt-width: 60px;
     --table-action-width: 120px;
+    
+    /* Table Column Widths - Rộng hơn */
+    --col-asset-code: 120px;
+    --col-asset-name: 220px;
+    --col-asset-type: 220px;
+    --col-department: 220px;
+    --col-quantity: 100px;
+    --col-price: 150px;
+    --col-depreciation: 150px;
+    --col-residual: 150px;
 
-    /* Modal */
+    /* Modal - Rộng hơn */
     --modal-width: 1100px;
     --modal-padding: 32px;
     --modal-gap: 24px;
@@ -81,28 +104,36 @@
   }
 }
 
-/* Responsive cho Table columns width */
+/*
+  Sử dụng CSS variables, tự động scale
+*/
+.ms-table th,
+.ms-table td {
+  font-size: var(--font-size-base);
+  padding: 10px 8px;
+}
+
+.ms-table-header th {
+  height: var(--table-header-height);
+}
+
+.ms-table-body tr {
+  height: var(--table-row-height);
+}
+
+.ms-table-body td {
+  height: var(--table-row-height);
+}
+
+.ms-table-footer tr,
+.ms-table-footer td {
+  height: var(--table-footer-height);
+}
+
+/* Tăng padding cho màn 1920px */
 @media (min-width: 1920px) {
-  /* Tăng kích thước các cột trong table */
   .ms-table th,
   .ms-table td {
-    font-size: 14px;
-  }
-
-  .ms-table-header th {
-    height: var(--table-header-height);
-  }
-
-  .ms-table-body tr {
-    height: var(--table-row-height);
-  }
-
-  .ms-table-body td {
-    height: var(--table-row-height);
-  }
-
-  .ms-table-footer tr,
-  .ms-table-footer td {
-    height: var(--table-footer-height);
+    padding: 12px 10px;
   }
 }

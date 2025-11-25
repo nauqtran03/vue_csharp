@@ -10,6 +10,29 @@
   --sidebar-text-hover: #fff;
   --sidebar-width-collapsed: 66px;
 }
+
+/* Custom scrollbar - 3px gray */
+.ms-table-scroll-wrapper::-webkit-scrollbar,
+.ms-table-footer-wrapper::-webkit-scrollbar {
+  width: 3px !important;
+  height: 3px !important;
+}
+
+.ms-table-scroll-wrapper::-webkit-scrollbar-track,
+.ms-table-footer-wrapper::-webkit-scrollbar-track {
+  background: #f5f5f5 !important;
+}
+
+.ms-table-scroll-wrapper::-webkit-scrollbar-thumb,
+.ms-table-footer-wrapper::-webkit-scrollbar-thumb {
+  background: gray !important;
+  border-radius: 2px !important;
+}
+
+.ms-table-scroll-wrapper::-webkit-scrollbar-thumb:hover,
+.ms-table-footer-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #666 !important;
+}
 .w-100{
   width: 100%;
 }

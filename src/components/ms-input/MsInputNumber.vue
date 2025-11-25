@@ -6,9 +6,11 @@
       <span v-if="isRequired" class="required-icon">*</span>
     </label>
     <InputNumber
+      ref="inputNumberRef"
       style="text-align: end"
-      min="0"
+      :min="0"
       :mode="mode"
+      locale="vi-VN"
       :showButtons="hasButton"
       :class="[error_message && 'input-number-error']"
       :name="name"
@@ -18,9 +20,8 @@
       :minFractionDigits="0"
       :maxFractionDigits="numType === 'decimal' ? 22 : 0"
       @update:modelValue="(val) => emit('update:modelValue', val)"
-      :pt="{
-        pcInputText: { root: { tabindex: tabindex } },
-      }"
+      @keyup="handleKeyup"
+      
     >
       <template #incrementicon>
         <span class="icon up-icon" tabindex="-1"></span>
@@ -37,6 +38,8 @@
 
 <script setup>
 import InputNumber from 'primevue/inputnumber'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+
 //#region Props
 defineProps({
   label: String,
@@ -51,8 +54,11 @@ defineProps({
   modelValue: [String, Number],
   error_message: String,
   flexRow: Boolean,
-  tabindex: Number,
   hasButton: Boolean,
+  mode: {
+    type: String,
+    default: 'decimal', // 'decimal' để có dấu phân cách hàng nghìn
+  },
   numType: {
     type: String,
   },
@@ -66,8 +72,62 @@ defineProps({
 //#region Emits
 const emit = defineEmits(['update:modelValue'])
 //#endregion Emits
-</script>
 
+const inputNumberRef = ref(null)
+
+const handleInput = (event) => {
+  const raw = event?.target?.value ?? ''
+  if (raw === '') {
+    emit('update:modelValue', null)
+    return
+  }
+  // Loại bỏ dấu chấm (phân cách hàng nghìn) và thay dấu phẩy (thập phân) bằng dấu chấm chuẩn JS
+  const normalized = String(raw).replace(/\./g, '').replace(/,/g, '.')
+  const num = Number(normalized)
+  if (!Number.isNaN(num)) {
+    emit('update:modelValue', num)
+  }
+}
+
+const handleKeyup = () => {
+  // Tìm input element và lấy giá trị thô khi gõ phím
+  if (inputNumberRef.value) {
+    const inputEl = inputNumberRef.value.$el?.querySelector('input')
+    if (inputEl) {
+      const raw = inputEl.value ?? ''
+      if (raw === '') {
+        emit('update:modelValue', null)
+        return
+      }
+      // Parse giá trị: bỏ dấu chấm (ngàn), đổi phẩy (thập phân) thành dấu chấm
+      const normalized = String(raw).replace(/\./g, '').replace(/,/g, '.')
+      const num = Number(normalized)
+      if (!Number.isNaN(num)) {
+        emit('update:modelValue', num)
+      }
+    }
+  }
+}
+
+onMounted(() => {
+  if (inputNumberRef.value) {
+    // Tìm input element thật bên trong component PrimeVue
+    const inputEl = inputNumberRef.value.$el.querySelector('input')
+    if (inputEl) {
+      inputEl.addEventListener('input', handleInput)
+    }
+  }
+})
+
+onBeforeUnmount(() => {
+  if (inputNumberRef.value) {
+    const inputEl = inputNumberRef.value.$el.querySelector('input')
+    if (inputEl) {
+      inputEl.removeEventListener('input', handleInput)
+    }
+  }
+})
+</script>
 <style>
 .form-input {
   gap: 8px;

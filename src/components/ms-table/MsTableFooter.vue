@@ -71,6 +71,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { formatter } from '@/utils/formatter'
 
 const props = defineProps({
   fields: {
@@ -119,19 +120,20 @@ const summaryFields = computed(() => {
   return props.fields.slice(-4)
 })
 
-// Colspan = 6 (checkbox + STT + 4 cot dau)
+// Colspan = checkbox (1) + STT (1) + các cột không phải summary (fields.length - 4)
 const paginationColspan = computed(() => {
-  return 6
+  const nonSummaryCols = props.fields.length - 4 // Trừ 4 cột summary
+  return 2 + nonSummaryCols // 2 = checkbox + STT
 })
 
 // Lấy giá trị summary tương ứng với field
 const getSummaryValue = (field) => {
   const index = summaryFields.value.indexOf(field)
   switch (index) {
-    case 0: return props.selectedCount
-    case 1: return formatNumber(props.totalAmount)
-    case 2: return formatNumber(props.totalDepreciation)
-    case 3: return formatNumber(props.totalValue)
+    case 0: return formatter.number(props.selectedCount)
+    case 1: return formatter.currency(props.totalAmount)
+    case 2: return formatter.currency(props.totalDepreciation)
+    case 3: return formatter.currency(props.totalValue)
     default: return ''
   }
 }
@@ -182,10 +184,6 @@ const visiblePages = computed(() => {
 const showEllipsis = computed(() => {
   return totalPages.value > 5 && props.currentPage < totalPages.value - 2
 })
-
-const formatNumber = (value) => {
-  return Number(value).toLocaleString('vi-VN')
-}
 </script>
 
 <style scoped>
@@ -199,6 +197,11 @@ const formatNumber = (value) => {
   height: var(--table-footer-height);
   padding: 10px 8px;
   box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0; /* Cho phép text-overflow hoạt động */
+  min-width: 0; /* Cho phép shrink nhỏ hơn content */
 }
 
 .pagination-cell {
@@ -242,9 +245,9 @@ const formatNumber = (value) => {
 }
 
 .action-col {
-  width: var(--table-action-width) !important;
-  min-width: var(--table-action-width) !important;
-  max-width: var(--table-action-width) !important;
+  width: 100px !important;
+  min-width: 100px !important;
+  max-width: 100px !important;
   box-sizing: border-box;
 }
 

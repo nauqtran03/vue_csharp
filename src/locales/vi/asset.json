@@ -75,7 +75,8 @@
         "price_positive": "Nguyên giá phải lớn hơn 0",
         "annualDepreciation_positive": "Giá trị hao mòn năm phải lớn hơn 0",
         "depreciationRate_positive": "Tỷ lệ hao mòn phải lớn hơn 0",
-        "useYears_positive": "Số năm sử dụng phải lớn hơn 0"
+        "useYears_positive": "Số năm sử dụng phải lớn hơn 0",
+        "assetCode_duplicate": "Mã tài sản đã tồn tại trong hệ thống"
 
     }
 }

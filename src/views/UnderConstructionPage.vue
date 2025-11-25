@@ -20,7 +20,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-import MsButton from '@/components/ms-button/MsButton.vue'; // Giả sử đường dẫn
+import MsButton from '@/components/ms-button/MsButton.vue'; 
 
 const router = useRouter();
 
@@ -40,8 +40,7 @@ const goBack = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f4f7ff; /* Màu nền thường dùng trong dự án của bạn */
-  padding: 20px;
+  background-color: #f4f7ff; 
 }
 
 .content-box {
@@ -50,7 +49,7 @@ const goBack = () => {
   padding: 40px 60px;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-  max-width: 450px;
+  max-width: 500px;
 }
 
 .icon-placeholder {
