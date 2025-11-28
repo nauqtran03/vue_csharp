@@ -18,7 +18,7 @@
       :modelValue="modelValue"
       :disabled="disabled"
       :minFractionDigits="0"
-      :maxFractionDigits="numType === 'decimal' ? 22 : 0"
+      :maxFractionDigits="numType === 'decimal' ? 2 : 0"
       @update:modelValue="(val) => emit('update:modelValue', val)"
       @keyup="handleKeyup"
       

@@ -313,7 +313,7 @@ import APIAssetType from '@/apis/components/APIAssetType.js'
 
 const { t } = useI18n()
 
-// -------------------- Danh mục từ BE --------------------
+// Danh mục từ BE 
 const departments = ref([])
 const assetTypes = ref([])
 
@@ -374,7 +374,7 @@ const props = defineProps({
 const emit = defineEmits(['update:isOpen', 'submit'])
 
 //Form & state
-const { errors, handleSubmit, defineField, resetForm, setErrors, validateField, setFieldTouched } = useForm({
+const { errors, handleSubmit, defineField, resetForm, setErrors, validateField } = useForm({
   validationSchema: assetSchema(t),
   initialValues: {
     assetCode: undefined,
@@ -398,8 +398,8 @@ const { errors, handleSubmit, defineField, resetForm, setErrors, validateField, 
 
 const [assetCode, assetCodeAttrs] = defineField('assetCode')
 const [assetName, assetNameAttrs] = defineField('assetName')
-const [departmentName, departmentNameAttrs] = defineField('departmentName')
-const [assetTypeName, assetTypeNameAttrs] = defineField('assetTypeName')
+const [departmentName] = defineField('departmentName')
+const [assetTypeName] = defineField('assetTypeName')
 const [quantity, quantityAttrs] = defineField('quantity')
 const [price, priceAttrs] = defineField('price')
 const [useYears, useYearsAttrs] = defineField('useYears')
@@ -423,7 +423,7 @@ const hasSubmitted = ref(false) // Theo dõi đã submit chưa
 // Computed để chỉ hiển thị lỗi cho các field đã touch hoặc đã submit
 const displayErrors = computed(() => {
   if (hasSubmitted.value) return errors.value
-  
+
   const filtered = {}
   for (const key in errors.value) {
     if (touchedFields.value.has(key)) {
@@ -465,7 +465,7 @@ const resetAll = () => {
   isOpenErrorModal.value = false
   errorMessage.value = ''
   isFillingForm.value = false
-  originalAssetCode.value = '' 
+  originalAssetCode.value = ''
   touchedFields.value.clear()
   hasSubmitted.value = false
   formKey.value++
@@ -531,32 +531,84 @@ const handleCloseErrorModal = () => {
   errorMessage.value = ''
 }
 
+//  Validation Helpers 
+
+/** Regex format mã tài sản: TS + số (VD: TS001, TS123) */
+const ASSET_CODE_REGEX = /^TS\d+$/
+
+/**
+ * Kiểm tra xem có cần check trùng mã không
+ * - Add/Duplicate: luôn cần check
+ * - Edit: chỉ check khi mã đã thay đổi
+ */
+const shouldCheckDuplicate = (code) => {
+  if (!code) return false
+  
+  const isEditMode = props.mode === 'edit'
+  const codeUnchanged = code === originalAssetCode.value
+  
+  // Edit mode + mã không đổi => không cần check
+  if (isEditMode && codeUnchanged) return false
+  
+  return true
+}
+
+/**
+ * Hiển thị lỗi validation trong modal
+ */
+const showValidationError = (fieldName, message) => {
+  setErrors({ [fieldName]: message })
+  errorMessage.value = message
+  isOpenErrorModal.value = true
+}
+
+/**
+ * Validate format mã tài sản
+ * @returns true nếu hợp lệ, false nếu không
+ */
+const validateAssetCodeFormat = (code) => {
+  if (!code) return true // Để schema xử lý required
+  return ASSET_CODE_REGEX.test(code)
+}
+
+/**
+ * Kiểm tra trùng mã tài sản qua API
+ * @returns true nếu bị trùng, false nếu không trùng
+ */
+const checkDuplicateCodeAPI = async (code) => {
+  try {
+    const response = await APIAsset.checkDuplicateCode(code)
+    return response.data?.data ?? false
+  } catch {
+    return false // Lỗi API thì bỏ qua, cho phép submit
+  }
+}
+
+// Submit Handler 
+
 /**
  * Submit form: dùng vee-validate, chỉ validate khi bấm Lưu
  */
 const onSubmit = handleSubmit(
   async (values) => {
-    // Kiểm tra trùng mã tài sản trước khi submit
     const code = values.assetCode?.trim()
-    if (code && (props.mode !== 'edit' || code !== originalAssetCode.value)) {
-      try {
-        const response = await APIAsset.checkDuplicateCode(code)
-        const isDuplicate = response.data?.data ?? false
-        
-        if (isDuplicate) {
-          setErrors({
-            assetCode: t('asset.errors.assetCode_duplicate')
-          })
-          errorMessage.value = t('asset.errors.assetCode_duplicate')
-          isOpenErrorModal.value = true
-          return
-        }
-      } catch (error) {
-        // Ignore error
+
+    // 1. Validate format mã tài sản (phải là TS + số)
+    if (!validateAssetCodeFormat(code)) {
+      showValidationError('assetCode', t('asset.errors.assetCode_format'))
+      return
+    }
+
+    // 2. Kiểm tra trùng mã (Add/Duplicate luôn check, Edit chỉ check khi đổi mã)
+    if (shouldCheckDuplicate(code)) {
+      const isDuplicate = await checkDuplicateCodeAPI(code)
+      if (isDuplicate) {
+        showValidationError('assetCode', t('asset.errors.assetCode_duplicate'))
+        return
       }
     }
 
-    // Kiểm tra: hao mòn năm không vượt quá nguyên giá
+    // 3. Business rule: hao mòn năm không được vượt quá nguyên giá
     if (values.annualDepreciation > values.price) {
       errorMessage.value = t('asset.depreciationExceedsPriceError')
       isOpenErrorModal.value = true
@@ -568,7 +620,7 @@ const onSubmit = handleSubmit(
   ({ errors: validationErrors }) => {
     // Đánh dấu đã submit để hiển thị tất cả lỗi
     hasSubmitted.value = true
-    
+
     const fieldOrder = [
       'assetCode',
       'assetName',
@@ -599,183 +651,197 @@ watch(purchaseDate, (val) => {
   }
 })
 
+// Data Mapping Helpers
+
+/**
+ * Lấy giá trị từ object theo nhiều key khác nhau (hỗ trợ camelCase và PascalCase)
+ * @param {Object} obj - Object nguồn
+ * @param {string[]} keys - Danh sách các key cần thử
+ * @param {*} defaultValue - Giá trị mặc định nếu không tìm thấy
+ */
+const getFieldValue = (obj, keys, defaultValue = undefined) => {
+  for (const key of keys) {
+    if (obj?.[key] !== undefined) return obj[key]
+  }
+  return defaultValue
+}
+
+/**
+ * Chuyển giá trị sang số, trả về 0 nếu không hợp lệ
+ */
+const toSafeNumber = (value, defaultValue = 0) => {
+  const num = Number(value)
+  return Number.isNaN(num) ? defaultValue : num
+}
+
+/**
+ * Tìm Department trong danh sách theo ID hoặc tên
+ * Ưu tiên: ID > fullName > abbreviation > code
+ */
+const findDepartment = (id, name) => {
+  if (departments.value.length === 0) return null
+
+  // Tìm theo ID trước
+  if (id) {
+    const byId = departments.value.find(d => String(d.departmentId) === String(id))
+    if (byId) return byId
+  }
+
+  // Tìm theo tên/abbreviation/code
+  if (name) {
+    const search = String(name).trim().toLowerCase()
+    return departments.value.find(d => {
+      const fullName = d.departmentName?.trim().toLowerCase()
+      const abbr = d.departmentAbbreviation?.trim().toLowerCase()
+      const code = d.departmentCode?.trim().toLowerCase()
+      return fullName === search || abbr === search || code === search
+    })
+  }
+
+  return null
+}
+
+/**
+ * Tìm AssetType trong danh sách theo ID hoặc tên
+ * Ưu tiên: ID > fullName > abbreviation > code
+ */
+const findAssetType = (id, name) => {
+  if (assetTypes.value.length === 0) return null
+
+  // Tìm theo ID trước
+  if (id) {
+    const byId = assetTypes.value.find(t => String(t.assetTypeId) === String(id))
+    if (byId) return byId
+  }
+
+  // Tìm theo tên/abbreviation/code
+  if (name) {
+    const search = String(name).trim().toLowerCase()
+    return assetTypes.value.find(t => {
+      const fullName = t.assetTypeName?.trim().toLowerCase()
+      const abbr = t.assetTypeAbbreviation?.trim().toLowerCase()
+      const code = t.assetTypeCode?.trim().toLowerCase()
+      return fullName === search || abbr === search || code === search
+    })
+  }
+
+  return null
+}
+
+// Field Key Mappings (hỗ trợ camelCase/PascalCase từ BE) 
+
+const FIELD_KEYS = {
+  assetCode: ['AssetCode', 'assetCode'],
+  assetName: ['AssetName', 'assetName'],
+  quantity: ['AssetQuantity', 'assetQuantity', 'quantity'],
+  price: ['AssetPrice', 'assetPrice', 'price'],
+  useYears: ['AssetTypeLifeTime', 'assetTypeLifeTime', 'useYears'],
+  depreciationRate: ['AssetTypeDepreciationRate', 'assetTypeDepreciationRate', 'depreciationRate'],
+  startDate: ['AssetStartDate', 'assetStartDate', 'startDate'],
+  purchaseDate: ['AssetPurchaseDate', 'assetPurchaseDate', 'purchaseDate'],
+  departmentId: ['DepartmentId', 'departmentId'],
+  departmentName: ['DepartmentName', 'departmentName'],
+  assetTypeId: ['AssetTypeId', 'assetTypeId'],
+  assetTypeName: ['AssetTypeName', 'assetTypeName'],
+  annualDepreciation: ['AssetAnnualDepreciation', 'assetAnnualDepreciation', 'annualDepreciation'],
+}
+
+// Fill Form Data 
+
 /**
  * Đổ dữ liệu assetData (Edit / Duplicate) vào form
- * - useYears lấy từ AssetLifeTime / assetTypeLifeTime / useYears nếu có
  */
 const setFormData = async (data) => {
   if (!data) return
 
-  isFillingForm.value = true // Bắt đầu fill form
-  
-  // Reset các select về undefined trước
+  isFillingForm.value = true
+
+  // Reset select fields
   departmentName.value = undefined
   assetTypeName.value = undefined
 
-  const get = (obj, keys, def = undefined) => {
-    for (const k of keys) if (obj?.[k] !== undefined) return obj[k]
-    return def
-  }
-
-  assetCode.value = get(data, ['assetCode', 'AssetCode'], '')
-  // Lưu mã gốc để so sánh khi edit
-  originalAssetCode.value = assetCode.value
-  assetName.value = get(data, ['assetName', 'AssetName'], '')
-  quantity.value = Number(get(data, ['quantity', 'Quantity', 'assetQuantity', 'AssetQuantity'], 0))
-  price.value = Number(get(data, ['price', 'Price', 'assetPrice', 'AssetPrice'], 0))
-
-  const lifeRaw = get(
-    data,
-    [
-      'useYears',
-      'UseYears',
-      'assetTypeLifeTime',
-      'AssetTypeLifeTime',
-      'assetLifeTime',
-      'AssetLifeTime',
-      'lifeTime',
-      'lifetime',
-      'LifeTime',
-    ],
-    0
-  )
-  useYears.value = lifeRaw != null && !Number.isNaN(Number(lifeRaw)) ? Number(lifeRaw) : 0
-
-  depreciationRate.value = Number(
-    get(
-      data,
-      ['depreciationRate', 'DepreciationRate', 'assetTypeDepreciationRate'],
-      0
-    )
-  )
-
-  const start = get(data, ['startDate', 'StartDate', 'assetStartDate', 'AssetStartDate'], null)
-  if (start) startDate.value = new Date(start)
-
-  const purch = get(
-    data,
-    ['purchaseDate', 'PurchaseDate', 'assetPurchaseDate', 'AssetPurchaseDate'],
-    null
-  )
-  if (purch) purchaseDate.value = new Date(purch)
-
-  // Map Department theo id hoặc tên
-  const did = get(data, ['departmentId', 'DepartmentId'], null)
-  const dname = get(data, ['departmentName', 'DepartmentName'], null)
-
-  if (departments.value.length > 0) {
-    let dept = null
-
-    // Ưu tiên tìm theo ID
-    if (did) {
-      dept = departments.value.find((d) => String(d.departmentId) === String(did))
-    }
-
-    // Nếu không có ID hoặc không tìm thấy, tìm theo tên
-    if (!dept && dname) {
-      const searchName = String(dname).trim().toLowerCase()
-      dept = departments.value.find((d) => {
-        const fullName = d.departmentName?.trim().toLowerCase()
-        const abbr = d.departmentAbbreviation?.trim().toLowerCase()
-        const code = d.departmentCode?.trim().toLowerCase()
-        const match = fullName === searchName || abbr === searchName || code === searchName
-        return match
-      })
-    }
-
-    if (dept) {
-      await nextTick()
-      departmentName.value = dept
-    }
-  }
-
-  // Map AssetType theo id hoặc tên
-  const tid = get(data, ['assetTypeId', 'AssetTypeId'], null)
-  const tname = get(data, ['assetTypeName', 'AssetTypeName'], null)
-
-  if (assetTypes.value.length > 0) {
-    let at = null
-
-    // Ưu tiên tìm theo ID
-    if (tid) {
-      at = assetTypes.value.find((t) => String(t.assetTypeId) === String(tid))
-    }
-
-    // Nếu không có ID hoặc không tìm thấy, tìm theo tên
-    if (!at && tname) {
-      const searchName = String(tname).trim().toLowerCase()
-      at = assetTypes.value.find((t) => {
-        const fullName = t.assetTypeName?.trim().toLowerCase()
-        const abbr = t.assetTypeAbbreviation?.trim().toLowerCase()
-        const code = t.assetTypeCode?.trim().toLowerCase()
-        const match = fullName === searchName || abbr === searchName || code === searchName
-        return match
-      })
-    }
-
-    if (at) {
-      await nextTick()
-      assetTypeName.value = at
-      // Không ghi đè nếu đã có giá trị từ data
-      if (!depreciationRate.value || Number.isNaN(Number(depreciationRate.value))) {
-        depreciationRate.value = Number(at.assetTypeDepreciationRate ?? 0)
-      }
-      if (!useYears.value || Number.isNaN(Number(useYears.value))) {
-        const life = at.assetTypeLifeTime ?? at.AssetTypeLifeTime
-        if (life != null && !Number.isNaN(Number(life))) {
-          useYears.value = Math.round(Number(life))
-        }
-      }
-    }
-  }
-
-  // Tính hao mòn năm nếu chưa có
-  const ad = get(
-    data,
-    ['annualDepreciation', 'AnnualDepreciation', 'assetAnnualDepreciation', 'AssetAnnualDepreciation'],
-    null
-  )
-  annualDepreciation.value =
-    ad != null ? Number(ad) : (price.value * Number(depreciationRate.value || 0)) / 100
-
-  // Cập nhật năm theo dõi
-  if (purchaseDate.value instanceof Date) {
-    trackingYear.value = purchaseDate.value.getFullYear()
-  } else {
-    trackingYear.value = new Date().getFullYear()
-  }
+  // Fill các field cơ bản
+  assetCode.value = getFieldValue(data, FIELD_KEYS.assetCode, '')
+  originalAssetCode.value = assetCode.value // Lưu mã gốc để so sánh khi edit
   
-  // Kết thúc fill form
+  assetName.value = getFieldValue(data, FIELD_KEYS.assetName, '')
+  quantity.value = toSafeNumber(getFieldValue(data, FIELD_KEYS.quantity, 0))
+  price.value = toSafeNumber(getFieldValue(data, FIELD_KEYS.price, 0))
+  useYears.value = toSafeNumber(getFieldValue(data, FIELD_KEYS.useYears, 0))
+  depreciationRate.value = toSafeNumber(getFieldValue(data, FIELD_KEYS.depreciationRate, 0))
+
+  //Fill các field ngày
+  const startRaw = getFieldValue(data, FIELD_KEYS.startDate, null)
+  if (startRaw) startDate.value = new Date(startRaw)
+
+  const purchRaw = getFieldValue(data, FIELD_KEYS.purchaseDate, null)
+  if (purchRaw) purchaseDate.value = new Date(purchRaw)
+
+  // Map Department 
+  const deptId = getFieldValue(data, FIELD_KEYS.departmentId, null)
+  const deptName = getFieldValue(data, FIELD_KEYS.departmentName, null)
+  const dept = findDepartment(deptId, deptName)
+  if (dept) {
+    await nextTick()
+    departmentName.value = dept
+  }
+
+  // Map AssetType
+  const typeId = getFieldValue(data, FIELD_KEYS.assetTypeId, null)
+  const typeName = getFieldValue(data, FIELD_KEYS.assetTypeName, null)
+  const assetType = findAssetType(typeId, typeName)
+  if (assetType) {
+    await nextTick()
+    assetTypeName.value = assetType
+
+    // Tự động lấy depreciationRate và useYears từ assetType nếu chưa có
+    if (!depreciationRate.value) {
+      depreciationRate.value = toSafeNumber(assetType.assetTypeDepreciationRate)
+    }
+    if (!useYears.value) {
+      const life = assetType.assetTypeLifeTime ?? assetType.AssetTypeLifeTime
+      if (life != null) useYears.value = Math.round(toSafeNumber(life))
+    }
+  }
+
+  // Tính hao mòn năm
+  const annualRaw = getFieldValue(data, FIELD_KEYS.annualDepreciation, null)
+  annualDepreciation.value = annualRaw != null
+    ? toSafeNumber(annualRaw)
+    : (price.value * depreciationRate.value) / 100
+
+  // Cập nhật năm theo dõi 
+  trackingYear.value = purchaseDate.value instanceof Date
+    ? purchaseDate.value.getFullYear()
+    : new Date().getFullYear()
+
   await nextTick()
   isFillingForm.value = false
 }
 
 /**
- * Kiểm tra trùng mã tài sản khi blur
+ * Kiểm tra format và trùng mã tài sản khi blur
+ * - Validate realtime để UX tốt hơn
+ * - Bỏ qua nếu đang edit và mã không đổi
  */
 const checkDuplicateAssetCode = async () => {
   const code = assetCode.value?.trim()
-  
-  // Không kiểm tra nếu:
-  // - Mã rỗng (sẽ được validate bởi schema)
-  // - Đang ở chế độ edit và mã không thay đổi
-  if (!code) return
-  if (props.mode === 'edit' && code === originalAssetCode.value) return
-  
-  try {
-    // Gọi API kiểm tra trùng mã
-    const response = await APIAsset.checkDuplicateCode(code)
-    const isDuplicate = response.data?.data ?? false
-    
-    if (isDuplicate) {
-      // Set lỗi cho field assetCode
-      setErrors({
-        assetCode: t('asset.errors.assetCode_duplicate')
-      })
-    }
-  } catch (error) {
-    // Ignore error
+
+  // Bỏ qua validation nếu không cần check
+  if (!shouldCheckDuplicate(code)) return
+
+  // Validate format trước
+  if (!validateAssetCodeFormat(code)) {
+    setErrors({ assetCode: t('asset.errors.assetCode_format') })
+    return
   }
+
+  // Gọi API kiểm tra trùng mã
+  const isDuplicate = await checkDuplicateCodeAPI(code)
+  
+  setErrors({
+    assetCode: isDuplicate ? t('asset.errors.assetCode_duplicate') : undefined
+  })
 }
 
 /**
@@ -786,7 +852,7 @@ const checkDuplicateAssetCode = async () => {
 const resolveDepartment = async () => {
   // Đánh dấu field đã được touch
   touchedFields.value.add('departmentName')
-  
+
   const val = departmentName.value
   if (!val) {
     // Validate khi blur mà chưa chọn gì
@@ -825,7 +891,7 @@ const resolveDepartment = async () => {
 const resolveAssetType = async () => {
   // Đánh dấu field đã được touch
   touchedFields.value.add('assetTypeName')
-  
+
   const val = assetTypeName.value
   if (!val) {
     // Validate khi blur mà chưa chọn gì
@@ -897,17 +963,17 @@ watch(
     }
 
     await ensureCatalogsLoaded()
-    
+
     if (props.mode === 'add') {
       // Reset form về giá trị mặc định TRƯỚC khi tăng formKey
       resetForm()
       departmentName.value = undefined
       assetTypeName.value = undefined
-      
+
       // Tăng formKey để force re-render form SAU khi reset
       formKey.value++
       await nextTick()
-      
+
       // Lấy mã mới từ BE khi thêm mới
       try {
         const res = await APIAsset.generateNewCode()
@@ -918,7 +984,7 @@ watch(
     } else if (props.assetData) {
       // Edit / Duplicate -> đổ dữ liệu từ assetData trước khi tăng formKey
       await setFormData(props.assetData)
-      
+
       // Tăng formKey sau khi fill data để re-render với dữ liệu đúng
       formKey.value++
       await nextTick()
@@ -946,24 +1012,29 @@ watch(
   font-size: 14px;
 }
 
+/* Responsive modal */
+.modal-content {
+  width: var(--modal-width) !important;
+  height: 600px; /* Cố định chiều cao modal */
+  font-size: var(--font-size-base);
+  display: flex;
+  flex-direction: column;
+}
+
 .scroll {
   overflow-y: auto;
   flex: 1;
   min-height: 0;
-}
-
-.text-right-input input {
-  text-align: right !important;
-}
-
-/* Responsive modal */
-.modal-content {
-  width: var(--modal-width) !important;
-  font-size: var(--font-size-base);
+  padding-right: 10px; /* Thêm padding để tránh scrollbar che nội dung */
 }
 
 .modal-footer {
   height: var(--modal-footer-height) !important;
+  flex-shrink: 0; /* Không cho footer bị co lại */
+}
+
+.modal-head {
+  flex-shrink: 0; /* Không cho header bị co lại */
 }
 
 /* Label font-size responsive */

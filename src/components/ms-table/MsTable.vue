@@ -306,6 +306,34 @@ const handleRowClick = (id, index, event) => {
   // Nếu click vào checkbox thì không xử lý
   if (event.target.type === 'checkbox') return
 
+  // Ctrl + Click: Toggle selection (chọn/bỏ chọn từng item)
+  if (event.ctrlKey || event.metaKey) {
+    const currentIndex = selectedRows.value.indexOf(id)
+    if (currentIndex > -1) {
+      // Đã chọn → Bỏ chọn
+      selectedRows.value.splice(currentIndex, 1)
+    } else {
+      // Chưa chọn → Thêm vào selection
+      selectedRows.value.push(id)
+    }
+    lastSelectedIndex.value = index
+    emit('selection-change', selectedRows.value)
+    return
+  }
+
+  // Shift + Click: Select range
+  if (event.shiftKey && lastSelectedIndex.value !== null) {
+    const start = Math.min(lastSelectedIndex.value, index)
+    const end = Math.max(lastSelectedIndex.value, index)
+    const rangeIds = props.rows
+      .slice(start, end + 1)
+      .map(row => row[props.rowKey])
+      .filter(rowId => rowId != null)
+    selectedRows.value = [...new Set([...selectedRows.value, ...rangeIds])]
+    emit('selection-change', selectedRows.value)
+    return
+  }
+
   // Normal click: Select single
   selectedRows.value = [id]
   lastSelectedIndex.value = index
@@ -320,8 +348,8 @@ const handleRowClick = (id, index, event) => {
 const handleKeyDown = (event) => {
   if (props.rows.length === 0) return
 
-  // Ctrl: Select all
-  if (event.ctrlKey || event.metaKey) {
+  // Ctrl+A: Select all
+  if ((event.ctrlKey || event.metaKey) && event.key === 'a') {
     event.preventDefault()
     selectedRows.value = props.rows
       .map(row => row[props.rowKey])

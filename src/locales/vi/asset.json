@@ -10,7 +10,7 @@
     "useYears": "Số năm sử dụng",
     "trackingYear": "Năm theo dõi",
     "purchaseDate": "Ngày mua",
-    "depreciationRate": "Tỷ lệ hao mòn",
+    "depreciationRate": "Tỷ lệ hao mòn (%)",
     "annualDepreciation": "Giá trị hao mòn năm",
     "startDate": "Ngày bắt đầu sử dụng",
 
@@ -60,6 +60,7 @@
         "assetCode_max": "Mã tài sản không được vượt quá 20 ký tự",
         "assetName_required": "Cần phải nhập thông tin tên tài sản",
         "assetName_max": "Tên tài sản không được vượt quá 255 ký tự",
+        "assetName_no_spaces": "Tên tài sản không được là chuỗi trống",
         "assetTypeName_required": "Cần phải chọn thông tin loại tài sản",
         "departmentName_required": "Cần phải chọn thông tin bộ phận sử dụng",
         "quantity_required": "Cần phải nhập thông tin số lượng",
@@ -76,7 +77,9 @@
         "annualDepreciation_positive": "Giá trị hao mòn năm phải lớn hơn 0",
         "depreciationRate_positive": "Tỷ lệ hao mòn phải lớn hơn 0",
         "useYears_positive": "Số năm sử dụng phải lớn hơn 0",
-        "assetCode_duplicate": "Mã tài sản đã tồn tại trong hệ thống"
+        "assetCode_duplicate": "Mã tài sản đã tồn tại trong hệ thống",
+        "assetCode_format": "Mã tài sản phải có dạng TS + số ",
+        "startDate_after_purchaseDate": "Ngày bắt đầu sử dụng phải lớn hơn hoặc bằng ngày mua"
 
     }
 }

@@ -1,5 +1,5 @@
 /*
-   Base: 1366px 
+   Base: 1366px
 */
 :root {
   /* Spacing */
@@ -11,7 +11,7 @@
 
   /* Sidebar */
   --sidebar-width: 220px;
-  --sidebar-width-collapsed: 56px;
+  --sidebar-width-collapsed: 66px;
 
   /* Typography */
   --font-size-base: 13px;
@@ -32,16 +32,16 @@
   --table-checkbox-width: 36px;
   --table-stt-width: 50px;
   --table-action-width: 100px;
-  
-  /* Table Column Widths */
-  --col-asset-code: 100px;
-  --col-asset-name: 180px;
-  --col-asset-type: 180px;
-  --col-department: 180px;
-  --col-quantity: 80px;
-  --col-price: 120px;
-  --col-depreciation: 120px;
-  --col-residual: 120px;
+
+  /* Table Column Widths - Tối ưu cho màn 1366px */
+  --col-asset-code: 90px;
+  --col-asset-name: 150px;
+  --col-asset-type: 140px;
+  --col-department: 140px;
+  --col-quantity: 70px;
+  --col-price: 110px;
+  --col-depreciation: 110px;
+  --col-residual: 110px;
 
   /* Modal */
   --modal-width: 800px;
@@ -64,7 +64,7 @@
 
     /* Sidebar - Rộng hơn */
     --sidebar-width: 240px;
-    --sidebar-width-collapsed: 64px;
+    --sidebar-width-collapsed: 66px;
 
     /* Typography - Font lớn hơn */
     --font-size-base: 14px;
@@ -85,7 +85,7 @@
     --table-checkbox-width: 40px;
     --table-stt-width: 60px;
     --table-action-width: 120px;
-    
+
     /* Table Column Widths - Rộng hơn */
     --col-asset-code: 120px;
     --col-asset-name: 220px;

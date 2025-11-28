@@ -277,7 +277,7 @@ const handleConfirmExport = async () => {
         ? assetTypes.value.find(t => t.id === assetType.value)?.name
         : null,
       p_page_number: 1,
-      p_page_size: 999999 
+      p_page_size: 999999
     }
 
     const response = await APIAsset.list(params)
@@ -330,7 +330,7 @@ const handleConfirmExport = async () => {
     } else {
       toast.error('Không có dữ liệu để xuất', 'Lỗi')
     }
-  } catch (error) {
+  } catch {
     toast.error('Có lỗi xảy ra khi xuất Excel', 'Lỗi')
   } finally {
     isLoading.value = false
@@ -385,19 +385,35 @@ const handleConfirmDelete = () => {
 /**
  * Xử lý edit row
  */
-const handleEdit = (row) => {
-  modalMode.value = 'edit'
-  selectedAsset.value = row
-  isModalOpen.value = true
+const handleEdit = async (row) => {
+  try {
+    modalMode.value = 'edit'
+    // Gọi API để lấy đầy đủ thông tin tài sản (bao gồm cả ngày tháng)
+    const assetId = row.assetId ?? row.AssetId
+    const response = await APIAsset.getById(assetId)
+    selectedAsset.value = response.data?.data ?? response.data
+    isModalOpen.value = true
+  } catch (error) {
+    toast.error('Không thể tải thông tin tài sản', 'Lỗi')
+    console.error('Error loading asset detail:', error)
+  }
 }
 
 /**
  * Xử lý duplicate row
  */
-const handleDuplicate = (row) => {
-  modalMode.value = 'duplicate'
-  selectedAsset.value = row
-  isModalOpen.value = true
+const handleDuplicate = async (row) => {
+  try {
+    modalMode.value = 'duplicate'
+    // Gọi API để lấy đầy đủ thông tin tài sản (bao gồm cả ngày tháng)
+    const assetId = row.assetId ?? row.AssetId
+    const response = await APIAsset.getById(assetId)
+    selectedAsset.value = response.data?.data ?? response.data
+    isModalOpen.value = true
+  } catch (error) {
+    toast.error('Không thể tải thông tin tài sản', 'Lỗi')
+    console.error('Error loading asset detail:', error)
+  }
 }
 
 /**
@@ -413,11 +429,11 @@ const handleSelectionChange = (selectedIds) => {
  */
 const handleDeleteFromContextMenu = (ids) => {
   if (!ids || ids.length === 0) return
-  
+
   // Hiển thị modal xác nhận
   const count = ids.length
   deleteConfirmMessage.value = `Bạn có thực sự muốn xóa ${count} tài sản đã chọn?`
-  
+
   // Lưu lại danh sách ID để xóa
   selectedRows.value = ids
   isDeleteConfirmOpen.value = true
@@ -425,6 +441,7 @@ const handleDeleteFromContextMenu = (ids) => {
 //#endregion
 
 //#region Methods - Modal Actions
+
 /**
  * Lấy năm từ startDate hoặc purchaseDate để tính AssetUseYear
  * @param {Object} data - Dữ liệu form chứa startDate hoặc purchaseDate
@@ -440,14 +457,28 @@ const getYear = (data) => {
 }
 
 /**
+ * Format date để gửi lên server, tránh timezone issue
+ * @param {Date} date - Date object
+ * @returns {string|null} ISO string với local date
+ */
+const formatDateForServer = (date) => {
+  if (!date) return null
+  // Tạo ISO string với local timezone (YYYY-MM-DD)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}T00:00:00`
+}
+
+/**
  * Xử lý submit form từ modal
  */
 const handleSubmitAsset = (formData) => {
   const payload = {
     AssetCode: formData.assetCode,
     AssetName: formData.assetName,
-    AssetPurchaseDate: formData.purchaseDate ? new Date(formData.purchaseDate) : null,
-    AssetStartDate: formData.startDate ? new Date(formData.startDate) : null,
+    AssetPurchaseDate: formatDateForServer(formData.purchaseDate),
+    AssetStartDate: formatDateForServer(formData.startDate),
     AssetUseYear: getYear(formData),
     AssetDepreciationRate: Number(formData.depreciationRate ?? 0),
     AssetQuantity: Number(formData.quantity ?? 0),
@@ -460,7 +491,8 @@ const handleSubmitAsset = (formData) => {
   let action
   if (modalMode.value === 'add' || modalMode.value === 'duplicate') {
     action = APIAsset.create(payload)
-  } else if (modalMode.value === 'edit') {
+  }
+  else if(modalMode.value === 'edit') {
     const id = selectedAsset.value?.assetId || selectedAsset.value?.AssetId || formData.assetId || formData.AssetId
     if (!id) {
       toast.error('Không thể cập nhật: Thiếu ID tài sản', 'Lỗi')
@@ -482,13 +514,25 @@ const handleSubmitAsset = (formData) => {
         } else if (modalMode.value === 'duplicate') {
           toast.success('Nhân bản tài sản thành công', 'Thành công')
         }
+        isModalOpen.value = false
       })
       .catch((error) => {
-        const errorMsg = error.response?.data?.message || error.message || 'Không thể lưu dữ liệu'
+        // Xử lý lỗi từ backend
+        let errorMsg = 'Không thể lưu dữ liệu'
+
+        // Lấy message từ response
+        if (error.response?.data?.message) {
+          errorMsg = error.response.data.message
+        } else if (error.response?.data?.errors) {
+          // Nếu có nhiều lỗi, lấy lỗi đầu tiên
+          const errors = error.response.data.errors
+          errorMsg = Array.isArray(errors) ? errors[0] : errors
+        } else if (error.message) {
+          errorMsg = error.message
+        }
+
         toast.error(errorMsg, 'Lỗi')
-      })
-      .finally(() => {
-        isModalOpen.value = false
+        // Không đóng modal khi có lỗi để user có thể sửa
       })
   } else {
     isModalOpen.value = false
@@ -503,7 +547,7 @@ const handleSubmitAsset = (formData) => {
 const loadAssets = async () => {
   try {
     isLoading.value = true
-    
+
     // Lấy tên department và assetType từ ID
     const departmentName = department.value
       ? departments.value.find(d => d.id === department.value)?.name
@@ -542,7 +586,7 @@ const loadAssets = async () => {
         }
       }
     }
-  } catch (error) {
+  } catch {
     toast.error('Không thể tải dữ liệu tài sản', 'Lỗi')
   } finally {
     isLoading.value = false
@@ -570,8 +614,8 @@ function mapAssetToRow(a) {
     residualValue: a.residualValue ?? a.ResidualValue ?? 0,
     departmentId: a.departmentId ?? a.DepartmentId,
     assetTypeId: a.assetTypeId ?? a.AssetTypeId,
-    purchaseDate: a.purchaseDate ?? a.PurchaseDate,
-    startDate: a.startDate ?? a.StartDate,
+    purchaseDate: a.assetPurchaseDate ?? a.AssetPurchaseDate ?? a.purchaseDate ?? a.PurchaseDate,
+    startDate: a.assetStartDate ?? a.AssetStartDate ?? a.startDate ?? a.StartDate,
     depreciationRate: a.depreciationRate ?? a.DepreciationRate ?? 0,
     assetTypeLifeTime: a.assetLifeTime ?? a.AssetLifeTime ?? a.assetTypeLifeTime ?? a.AssetTypeLifeTime ?? 0,
   }
@@ -590,7 +634,7 @@ const loadAssetTypes = async () => {
         name: item.assetTypeName ?? item.AssetTypeName
       }))
     }
-  } catch (error) {
+  } catch {
     toast.error('Không thể tải danh sách loại tài sản', 'Lỗi')
   }
 }
@@ -608,7 +652,7 @@ const loadDepartments = async () => {
         name: item.departmentName ?? item.DepartmentName
       }))
     }
-  } catch (error) {
+  } catch {
     toast.error('Không thể tải danh sách bộ phận', 'Lỗi')
   }
 }

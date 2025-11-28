@@ -1,6 +1,6 @@
 export const primeVueConfig = {
   theme: {
-    preset: null, // Sẽ import Aura ở main.js
+    preset: null, 
     options: {
       darkModeSelector: false,
       cssLayer: false
