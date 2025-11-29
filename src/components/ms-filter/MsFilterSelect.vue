@@ -131,12 +131,12 @@ const selectRef = ref(null)
 // Computed để lấy label của item đã chọn (dùng cho title/tooltip)
 const selectedLabel = computed(() => {
   if (!props.modelValue || !props.options.length) return ''
-  
+
   const selected = props.options.find(opt => {
     const optValue = props.optionValue ? opt[props.optionValue] : opt
     return optValue === props.modelValue
   })
-  
+
   return selected ? (props.optionLabel ? selected[props.optionLabel] : selected) : ''
 })
 

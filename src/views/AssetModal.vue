@@ -1,5 +1,5 @@
 <template>
-  <MsModal to="body" :isOpen="isOpen">
+  <MsModal to="body" :isOpen="isOpen" :resizable="true" :defaultWidth="modalDefaultWidth">
     <form @submit.prevent="onSubmit" class="modal-content rounded-md">
       <!-- head -->
       <div class="modal-head flex justify-between items-center">
@@ -24,21 +24,21 @@
 
       <!-- content -->
       <div :key="formKey" class="scroll modal-body flex flex-col gap-20">
-        <div class="grid grid-cols-3 gap-16">
-          <div class="col-span-1">
+        <div class="form-grid form-grid-2">
+          <div>
             <MsInput
               tabindex="1"
               size="large"
               isRequired
               v-model="assetCode"
               v-bind="assetCodeAttrs"
-              :error_message="errors.assetCode"
+              :error_message="assetCodeError"
               :label="t('asset.assetCode')"
               :placeholder="t('asset.assetCodePlaceholder')"
               @blur="checkDuplicateAssetCode"
             />
           </div>
-          <div class="col-span-2">
+          <div>
             <MsInput
               ref="firstInputRef"
               tabindex="2"
@@ -52,8 +52,8 @@
             />
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-16">
-          <div class="col-span-1">
+        <div class="form-grid form-grid-2">
+          <div>
             <MsFilterSelect
               tabindex="3"
               size="large"
@@ -79,7 +79,7 @@
               </template>
             </MsFilterSelect>
           </div>
-          <div class="col-span-2">
+          <div>
             <MsInput
               size="large"
               disabled
@@ -89,8 +89,8 @@
             />
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-16">
-          <div class="col-span-1">
+        <div class="form-grid form-grid-2">
+          <div>
             <MsFilterSelect
               tabindex="4"
               size="large"
@@ -116,7 +116,7 @@
               </template>
             </MsFilterSelect>
           </div>
-          <div class="col-span-2">
+          <div>
             <MsInput
               size="large"
               disabled
@@ -126,8 +126,8 @@
             />
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-16">
-          <div class="col-span-1">
+        <div class="form-grid form-grid-3">
+          <div>
             <MsInputNumber
               tabindex="5"
               hasButton
@@ -140,7 +140,7 @@
               :placeholder="t('asset.quantityPlaceholder')"
             />
           </div>
-          <div class="col-span-1">
+          <div>
             <MsInputNumber
               tabindex="6"
               size="large"
@@ -154,7 +154,7 @@
               :placeholder="t('asset.pricePlaceholder')"
             />
           </div>
-          <div class="col-span-1">
+          <div>
             <MsInputNumber
               tabindex="7"
               size="large"
@@ -169,8 +169,8 @@
             />
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-16">
-          <div class="col-span-1">
+        <div class="form-grid form-grid-3">
+          <div>
             <MsDatePicker
               size="large"
               tabindex="8"
@@ -181,7 +181,7 @@
               :label="t('asset.purchaseDate')"
             />
           </div>
-          <div class="col-span-1">
+          <div>
             <MsDatePicker
               size="large"
               tabindex="9"
@@ -192,7 +192,7 @@
               :label="t('asset.startDate')"
             />
           </div>
-          <div class="col-span-1">
+          <div>
             <MsInput
               size="large"
               :modelValue="trackingYear"
@@ -203,8 +203,8 @@
             />
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-16">
-          <div class="col-span-1">
+        <div class="form-grid form-grid-3">
+          <div>
             <MsInputNumber
               hasButton
               size="large"
@@ -218,7 +218,7 @@
               numType="decimal"
             />
           </div>
-          <div class="col-span-1">
+          <div>
             <MsInputNumber
               size="large"
               tabindex="11"
@@ -310,10 +310,38 @@ import MsInput from '@/components/ms-input/MsInput.vue'
 import MsFilterSelect from '@/components/ms-filter/MsFilterSelect.vue'
 import APIDepartment from '@/apis/components/APIDepartment.js'
 import APIAssetType from '@/apis/components/APIAssetType.js'
+import { onMounted, onUnmounted } from 'vue'
 
 const { t } = useI18n()
 
-// Danh mục từ BE 
+// Responsive modal width dựa trên kích thước màn hình
+const getModalWidth = () => {
+  const screenWidth = window.innerWidth
+  if (screenWidth <= 1366) {
+    return 800 // Màn 1366px: modal 800px
+  } else if (screenWidth <= 1600) {
+    return 850 // Màn 1600px: modal 850px
+  } else {
+    return 900 // Màn 1920px+: modal 900px
+  }
+}
+
+const modalDefaultWidth = ref(getModalWidth())
+
+// Update modal width khi resize window
+const handleResize = () => {
+  modalDefaultWidth.value = getModalWidth()
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+})
+
+// Danh mục từ BE
 const departments = ref([])
 const assetTypes = ref([])
 
@@ -433,6 +461,15 @@ const displayErrors = computed(() => {
   return filtered
 })
 
+// Computed riêng cho assetCode error để đảm bảo reactivity
+const assetCodeError = computed(() => {
+  // Luôn hiển thị lỗi nếu đã touched hoặc đã submit
+  if (hasSubmitted.value || touchedFields.value.has('assetCode')) {
+    return errors.value.assetCode
+  }
+  return undefined
+})
+
 /**
  * Kiểm tra form có dữ liệu hay chưa (phục vụ confirm khi đóng)
  */
@@ -531,7 +568,7 @@ const handleCloseErrorModal = () => {
   errorMessage.value = ''
 }
 
-//  Validation Helpers 
+//  Validation Helpers
 
 /** Regex format mã tài sản: TS + số (VD: TS001, TS123) */
 const ASSET_CODE_REGEX = /^TS\d+$/
@@ -543,13 +580,13 @@ const ASSET_CODE_REGEX = /^TS\d+$/
  */
 const shouldCheckDuplicate = (code) => {
   if (!code) return false
-  
+
   const isEditMode = props.mode === 'edit'
   const codeUnchanged = code === originalAssetCode.value
-  
+
   // Edit mode + mã không đổi => không cần check
   if (isEditMode && codeUnchanged) return false
-  
+
   return true
 }
 
@@ -578,13 +615,20 @@ const validateAssetCodeFormat = (code) => {
 const checkDuplicateCodeAPI = async (code) => {
   try {
     const response = await APIAsset.checkDuplicateCode(code)
-    return response.data?.data ?? false
-  } catch {
+    console.log('Check duplicate response:', response.data)
+    
+    // Backend trả về: { success: true, message: "...", data: true/false }
+    const isDuplicate = response.data?.data === true
+    console.log('isDuplicate:', isDuplicate)
+    
+    return isDuplicate
+  } catch (error) {
+    console.error('Error checking duplicate code:', error)
     return false // Lỗi API thì bỏ qua, cho phép submit
   }
 }
 
-// Submit Handler 
+// Submit Handler
 
 /**
  * Submit form: dùng vee-validate, chỉ validate khi bấm Lưu
@@ -649,6 +693,33 @@ watch(purchaseDate, (val) => {
   if (val instanceof Date) {
     trackingYear.value = val.getFullYear()
   }
+})
+
+// Watch assetCode để tự động check duplicate (với debounce 500ms)
+let checkDuplicateTimeout = null
+watch(assetCode, (newCode) => {
+  console.log('watch assetCode triggered, newCode:', newCode, 'isFillingForm:', isFillingForm.value)
+  
+  // Clear timeout cũ
+  if (checkDuplicateTimeout) {
+    clearTimeout(checkDuplicateTimeout)
+  }
+  
+  // Chỉ check khi không đang fill form
+  if (isFillingForm.value) {
+    console.log('Skipping check because isFillingForm is true')
+    return
+  }
+  
+  // Debounce 500ms
+  checkDuplicateTimeout = setTimeout(() => {
+    console.log('Debounce timeout fired, checking duplicate for:', newCode)
+    if (newCode && newCode.trim()) {
+      checkDuplicateAssetCode()
+    } else {
+      console.log('Code is empty, not checking')
+    }
+  }, 500)
 })
 
 // Data Mapping Helpers
@@ -728,7 +799,7 @@ const findAssetType = (id, name) => {
   return null
 }
 
-// Field Key Mappings (hỗ trợ camelCase/PascalCase từ BE) 
+// Field Key Mappings (hỗ trợ camelCase/PascalCase từ BE)
 
 const FIELD_KEYS = {
   assetCode: ['AssetCode', 'assetCode'],
@@ -746,7 +817,7 @@ const FIELD_KEYS = {
   annualDepreciation: ['AssetAnnualDepreciation', 'assetAnnualDepreciation', 'annualDepreciation'],
 }
 
-// Fill Form Data 
+// Fill Form Data
 
 /**
  * Đổ dữ liệu assetData (Edit / Duplicate) vào form
@@ -763,7 +834,7 @@ const setFormData = async (data) => {
   // Fill các field cơ bản
   assetCode.value = getFieldValue(data, FIELD_KEYS.assetCode, '')
   originalAssetCode.value = assetCode.value // Lưu mã gốc để so sánh khi edit
-  
+
   assetName.value = getFieldValue(data, FIELD_KEYS.assetName, '')
   quantity.value = toSafeNumber(getFieldValue(data, FIELD_KEYS.quantity, 0))
   price.value = toSafeNumber(getFieldValue(data, FIELD_KEYS.price, 0))
@@ -777,7 +848,7 @@ const setFormData = async (data) => {
   const purchRaw = getFieldValue(data, FIELD_KEYS.purchaseDate, null)
   if (purchRaw) purchaseDate.value = new Date(purchRaw)
 
-  // Map Department 
+  // Map Department
   const deptId = getFieldValue(data, FIELD_KEYS.departmentId, null)
   const deptName = getFieldValue(data, FIELD_KEYS.departmentName, null)
   const dept = findDepartment(deptId, deptName)
@@ -810,7 +881,7 @@ const setFormData = async (data) => {
     ? toSafeNumber(annualRaw)
     : (price.value * depreciationRate.value) / 100
 
-  // Cập nhật năm theo dõi 
+  // Cập nhật năm theo dõi
   trackingYear.value = purchaseDate.value instanceof Date
     ? purchaseDate.value.getFullYear()
     : new Date().getFullYear()
@@ -823,25 +894,48 @@ const setFormData = async (data) => {
  * Kiểm tra format và trùng mã tài sản khi blur
  * - Validate realtime để UX tốt hơn
  * - Bỏ qua nếu đang edit và mã không đổi
+ * - Lỗi sẽ "dính" lại cho đến khi user sửa thành mã hợp lệ
  */
 const checkDuplicateAssetCode = async () => {
   const code = assetCode.value?.trim()
+  console.log('checkDuplicateAssetCode called, code:', code, 'mode:', props.mode)
 
-  // Bỏ qua validation nếu không cần check
-  if (!shouldCheckDuplicate(code)) return
+  // Nếu không có code, clear lỗi assetCode (để schema validation xử lý required)
+  if (!code) {
+    setErrors({ ...errors.value, assetCode: undefined })
+    return
+  }
+
+  // Bỏ qua validation nếu không cần check (edit mode + mã không đổi)
+  if (!shouldCheckDuplicate(code)) {
+    console.log('shouldCheckDuplicate returned false, skipping validation')
+    // Clear lỗi duplicate nếu có (vì đang edit mã cũ)
+    setErrors({ ...errors.value, assetCode: undefined })
+    return
+  }
 
   // Validate format trước
   if (!validateAssetCodeFormat(code)) {
-    setErrors({ assetCode: t('asset.errors.assetCode_format') })
+    console.log('Invalid format')
+    touchedFields.value.add('assetCode') // Mark as touched để hiển thị lỗi
+    setErrors({ ...errors.value, assetCode: t('asset.errors.assetCode_format') })
     return
   }
 
   // Gọi API kiểm tra trùng mã
+  console.log('Calling API to check duplicate...')
   const isDuplicate = await checkDuplicateCodeAPI(code)
-  
-  setErrors({
-    assetCode: isDuplicate ? t('asset.errors.assetCode_duplicate') : undefined
-  })
+  console.log('API result - isDuplicate:', isDuplicate)
+
+  // Set hoặc clear lỗi dựa trên kết quả
+  if (isDuplicate) {
+    touchedFields.value.add('assetCode') // Mark as touched để hiển thị lỗi
+    setErrors({ ...errors.value, assetCode: t('asset.errors.assetCode_duplicate') })
+    console.log('Set error: duplicate code')
+  } else {
+    setErrors({ ...errors.value, assetCode: undefined })
+    console.log('Clear error: code is valid')
+  }
 }
 
 /**
@@ -1004,6 +1098,11 @@ watch(
   }
 )
 
+// Expose setErrors để component cha có thể set lỗi từ backend
+defineExpose({
+  setErrors
+})
+
 </script>
 
 <style>
@@ -1014,11 +1113,48 @@ watch(
 
 /* Responsive modal */
 .modal-content {
-  width: var(--modal-width) !important;
-  height: 600px; /* Cố định chiều cao modal */
+  width: 100% !important;
+  height: 100%;
+  max-height: 90vh; /* Giới hạn chiều cao tối đa */
   font-size: var(--font-size-base);
   display: flex;
   flex-direction: column;
+}
+
+/* Form grid responsive - các cột sẽ co giãn theo modal */
+.form-grid {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Grid 2 cột: 1 cột nhỏ (mã) + 1 cột lớn (tên) */
+.form-grid-2 {
+  grid-template-columns: minmax(150px, 1fr) minmax(200px, 2fr);
+}
+
+/* Grid 2 cột bằng nhau */
+.form-grid-2-equal {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Grid 3 cột: 3 cột bằng nhau */
+.form-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Đảm bảo các input field co giãn theo grid */
+.form-grid > div {
+  min-width: 0; /* Cho phép flex item co lại nhỏ hơn content */
+}
+
+/* Responsive: Khi modal nhỏ hơn 700px, chuyển về 1 cột */
+@container (max-width: 700px) {
+  .form-grid-2,
+  .form-grid-2-equal,
+  .form-grid-3 {
+    grid-template-columns: 1fr;
+  }
 }
 
 .scroll {
@@ -1035,6 +1171,56 @@ watch(
 
 .modal-head {
   flex-shrink: 0; /* Không cho header bị co lại */
+}
+
+/* Responsive cho màn hình 1366px */
+@media (max-width: 1366px) {
+  .modal-content {
+    font-size: 13px; /* Giảm font size */
+    max-height: 580px !important; /* Chiều cao cố định 580px để scroll xuất hiện */
+  }
+  
+  .modal-head {
+    padding: 14px 12px; /* Giảm padding header */
+  }
+  
+  .modal-head .text-2xl {
+    font-size: 18px; /* Giảm font size title */
+  }
+  
+  .modal-body {
+    padding: 0 12px 24px 12px; /* Giảm padding body */
+    gap: 16px; /* Giảm gap giữa các row */
+  }
+  
+  .form-grid {
+    gap: 12px; /* Giảm gap giữa các field */
+  }
+  
+  .modal-footer {
+    height: 48px !important; /* Giảm chiều cao footer */
+    padding: 0 12px; /* Giảm padding footer */
+  }
+  
+  /* Giảm kích thước input fields */
+  .modal-content input,
+  .modal-content select,
+  .modal-content textarea {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+  
+  /* Giảm kích thước label */
+  .modal-content label {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  
+  /* Giảm kích thước button */
+  .modal-footer button {
+    font-size: 13px;
+    padding: 8px 16px;
+  }
 }
 
 /* Label font-size responsive */

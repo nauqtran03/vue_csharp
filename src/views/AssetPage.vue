@@ -104,6 +104,7 @@
 
     <!-- Asset Modal -->
     <AssetModal
+      ref="assetModalRef"
       v-model:isOpen="isModalOpen"
       :mode="modalMode"
       :assetData="selectedAsset"
@@ -212,6 +213,7 @@ const selectedRows = ref([])
 const isDeleteConfirmOpen = ref(false)
 const deleteConfirmMessage = ref('')
 const isExportConfirmOpen = ref(false)
+const assetModalRef = ref(null) // Ref để gọi setErrors từ AssetModal
 //#endregion
 
 //#region Watch - Auto reload
@@ -531,7 +533,17 @@ const handleSubmitAsset = (formData) => {
           errorMsg = error.message
         }
 
-        toast.error(errorMsg, 'Lỗi')
+        // Kiểm tra xem có phải lỗi trùng mã tài sản không
+        const isDuplicateCodeError = errorMsg.toLowerCase().includes('đã tồn tại') || 
+                                      errorMsg.toLowerCase().includes('duplicate')
+        
+        if (isDuplicateCodeError && assetModalRef.value) {
+          // Hiển thị lỗi inline trong modal thay vì toast
+          assetModalRef.value.setErrors({ assetCode: errorMsg })
+        } else {
+          // Các lỗi khác vẫn hiển thị toast
+          toast.error(errorMsg, 'Lỗi')
+        }
         // Không đóng modal khi có lỗi để user có thể sửa
       })
   } else {
