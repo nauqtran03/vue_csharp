@@ -615,12 +615,10 @@ const validateAssetCodeFormat = (code) => {
 const checkDuplicateCodeAPI = async (code) => {
   try {
     const response = await APIAsset.checkDuplicateCode(code)
-    console.log('Check duplicate response:', response.data)
-    
+
     // Backend trả về: { success: true, message: "...", data: true/false }
     const isDuplicate = response.data?.data === true
-    console.log('isDuplicate:', isDuplicate)
-    
+
     return isDuplicate
   } catch (error) {
     console.error('Error checking duplicate code:', error)
@@ -698,26 +696,20 @@ watch(purchaseDate, (val) => {
 // Watch assetCode để tự động check duplicate (với debounce 500ms)
 let checkDuplicateTimeout = null
 watch(assetCode, (newCode) => {
-  console.log('watch assetCode triggered, newCode:', newCode, 'isFillingForm:', isFillingForm.value)
-  
   // Clear timeout cũ
   if (checkDuplicateTimeout) {
     clearTimeout(checkDuplicateTimeout)
   }
-  
+
   // Chỉ check khi không đang fill form
   if (isFillingForm.value) {
-    console.log('Skipping check because isFillingForm is true')
     return
   }
-  
+
   // Debounce 500ms
   checkDuplicateTimeout = setTimeout(() => {
-    console.log('Debounce timeout fired, checking duplicate for:', newCode)
     if (newCode && newCode.trim()) {
       checkDuplicateAssetCode()
-    } else {
-      console.log('Code is empty, not checking')
     }
   }, 500)
 })
@@ -898,7 +890,6 @@ const setFormData = async (data) => {
  */
 const checkDuplicateAssetCode = async () => {
   const code = assetCode.value?.trim()
-  console.log('checkDuplicateAssetCode called, code:', code, 'mode:', props.mode)
 
   // Nếu không có code, clear lỗi assetCode (để schema validation xử lý required)
   if (!code) {
@@ -908,7 +899,6 @@ const checkDuplicateAssetCode = async () => {
 
   // Bỏ qua validation nếu không cần check (edit mode + mã không đổi)
   if (!shouldCheckDuplicate(code)) {
-    console.log('shouldCheckDuplicate returned false, skipping validation')
     // Clear lỗi duplicate nếu có (vì đang edit mã cũ)
     setErrors({ ...errors.value, assetCode: undefined })
     return
@@ -916,25 +906,20 @@ const checkDuplicateAssetCode = async () => {
 
   // Validate format trước
   if (!validateAssetCodeFormat(code)) {
-    console.log('Invalid format')
     touchedFields.value.add('assetCode') // Mark as touched để hiển thị lỗi
     setErrors({ ...errors.value, assetCode: t('asset.errors.assetCode_format') })
     return
   }
 
   // Gọi API kiểm tra trùng mã
-  console.log('Calling API to check duplicate...')
   const isDuplicate = await checkDuplicateCodeAPI(code)
-  console.log('API result - isDuplicate:', isDuplicate)
 
   // Set hoặc clear lỗi dựa trên kết quả
   if (isDuplicate) {
     touchedFields.value.add('assetCode') // Mark as touched để hiển thị lỗi
     setErrors({ ...errors.value, assetCode: t('asset.errors.assetCode_duplicate') })
-    console.log('Set error: duplicate code')
   } else {
     setErrors({ ...errors.value, assetCode: undefined })
-    console.log('Clear error: code is valid')
   }
 }
 
@@ -1114,11 +1099,12 @@ defineExpose({
 /* Responsive modal */
 .modal-content {
   width: 100% !important;
-  height: 100%;
-  max-height: 90vh; /* Giới hạn chiều cao tối đa */
+  height: 620px; /* Chiều cao cố định mặc định */
+  max-height: 85vh; /* Giới hạn chiều cao tối đa */
   font-size: var(--font-size-base);
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* Ẩn overflow ở modal-content, để scroll ở modal-body */
 }
 
 /* Form grid responsive - các cột sẽ co giãn theo modal */
@@ -1177,45 +1163,45 @@ defineExpose({
 @media (max-width: 1366px) {
   .modal-content {
     font-size: 13px; /* Giảm font size */
+    height: 580px !important; /* Chiều cao cố định 580px */
     max-height: 580px !important; /* Chiều cao cố định 580px để scroll xuất hiện */
   }
-  
+
   .modal-head {
     padding: 14px 12px; /* Giảm padding header */
   }
-  
+
   .modal-head .text-2xl {
     font-size: 18px; /* Giảm font size title */
   }
-  
+
   .modal-body {
     padding: 0 12px 24px 12px; /* Giảm padding body */
     gap: 16px; /* Giảm gap giữa các row */
   }
-  
+
   .form-grid {
     gap: 12px; /* Giảm gap giữa các field */
   }
-  
+
   .modal-footer {
     height: 48px !important; /* Giảm chiều cao footer */
     padding: 0 12px; /* Giảm padding footer */
   }
-  
+
   /* Giảm kích thước input fields */
   .modal-content input,
   .modal-content select,
   .modal-content textarea {
     font-size: 13px;
-    padding: 8px 10px;
   }
-  
+
   /* Giảm kích thước label */
   .modal-content label {
     font-size: 13px;
     margin-bottom: 4px;
   }
-  
+
   /* Giảm kích thước button */
   .modal-footer button {
     font-size: 13px;
@@ -1223,8 +1209,13 @@ defineExpose({
   }
 }
 
-/* Label font-size responsive */
+/* Responsive cho màn hình 1920px */
 @media (min-width: 1920px) {
+  .modal-content {
+    height: 610px !important; /* Chiều cao cố định cho màn 1920px */
+    max-height: 610px !important;
+  }
+
   .modal-content label {
     font-size: 15px;
   }

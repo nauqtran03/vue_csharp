@@ -534,9 +534,9 @@ const handleSubmitAsset = (formData) => {
         }
 
         // Kiểm tra xem có phải lỗi trùng mã tài sản không
-        const isDuplicateCodeError = errorMsg.toLowerCase().includes('đã tồn tại') || 
+        const isDuplicateCodeError = errorMsg.toLowerCase().includes('đã tồn tại') ||
                                       errorMsg.toLowerCase().includes('duplicate')
-        
+
         if (isDuplicateCodeError && assetModalRef.value) {
           // Hiển thị lỗi inline trong modal thay vì toast
           assetModalRef.value.setErrors({ assetCode: errorMsg })

@@ -71,8 +71,8 @@ const modalStyle = computed(() => {
   if (modalHeight.value) {
     style.height = `${modalHeight.value}px`
   } else {
-    // Chiều cao mặc định khi chưa resize
-    style.height = 'auto'
+    // Chiều cao mặc định khi chưa resize - cố định để không tự động tăng
+    // Không set height, chỉ dùng maxHeight để modal tự fit nhưng không vượt quá
     style.maxHeight = '85vh' // Giới hạn để không bị quá cao
   }
   
@@ -200,7 +200,7 @@ const startDrag = (e) => {
 
 /* Body của Modal */
 .modal-body {
-  padding: 0 16px 36px 14px;
+  padding: 0 16px 16px 14px;
   flex: 1;
   overflow-y: auto;
 }
